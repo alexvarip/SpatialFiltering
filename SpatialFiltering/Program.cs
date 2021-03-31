@@ -5,17 +5,16 @@ namespace SpatialFiltering
 {
     class Program
     {
-        public static string path = "";
-        //public static string outpath1D = "";
-        //public static string outpath2D = "";
+        public static string filepath = "";
 
         static void Main(string[] args)
         {
 
-            //ConfigStartup(args);
+            ConfigStartup(args);
                 
             
             YuvModel yuv = new();
+
 
             Console.Clear();
 
@@ -39,7 +38,6 @@ namespace SpatialFiltering
 
             }
 
-
         }
 
 
@@ -60,8 +58,11 @@ namespace SpatialFiltering
             {
                 string extension = "";
 
-                 if (args[1].Length >= 5 && args[1][^3..] is "yuv")                
+                if (args[1].Length >= 5 && args[1][^3..] is "yuv")
+                {
                     extension = args[1][^3..];
+                    filepath = args[1];
+                }             
                 else
                 {
                     Console.WriteLine($"'{args[1]}' is not recognized as an file extension,\noperable program or batch file.");
