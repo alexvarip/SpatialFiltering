@@ -10,6 +10,9 @@ namespace SpatialFiltering
 {
     public class CustomController
     {
+
+        #region Private Variables
+
         private readonly Func<string> _inputProvider;
         private readonly Action<string> _outputProvider;
         private readonly YuvModel _yuv;
@@ -21,6 +24,7 @@ namespace SpatialFiltering
         private string outpath2 = @"C:\Users\alexv\Downloads\HW1\HW1\BlowingBubbles_416x240_filtered_2D.yuv";
 #endif
 
+        #endregion
 
 
 
@@ -39,6 +43,7 @@ namespace SpatialFiltering
 
 
         #region Controller Actions
+
         /// <summary>
         /// Gets all the essential information and reads from a specified file.
         /// </summary>
@@ -57,11 +62,12 @@ namespace SpatialFiltering
         /// <summary>
         /// Applies Median Filtering with selected window/mask size for the one or two dimensional implementations respectively.
         /// </summary>
-        public CustomController ApplyMedianFilter()
+        public CustomController ApplyFilter()
         {
             bool q = false;
             bool w = false;
 
+            var (Left, Top) = Console.GetCursorPosition();
 
             if (value is 1)
             {
@@ -72,6 +78,7 @@ namespace SpatialFiltering
 
                 int index = 1;
 
+                
                 Parallel.Invoke(
                                 delegate () 
                                 {
@@ -91,7 +98,7 @@ namespace SpatialFiltering
                                         for (int dots = 0; dots < 3; ++dots)
                                         {
                                             Console.Write('.');
-                                            Thread.Sleep(1000);
+                                            Thread.Sleep(500);
                                             if (dots == 2)
                                             {
                                                 if (q == true)
@@ -100,9 +107,12 @@ namespace SpatialFiltering
                                                     break;
                                                 }
 
-                                                Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
+                                                Console.SetCursorPosition(Left, Top);
+                                                Console.Write(new string(' ', 3));
+                                                Console.SetCursorPosition(Left, Top);
+                                                
                                                 dots = -1;
-                                                Thread.Sleep(1000);
+                                                Thread.Sleep(500);
                                             }
                                         }
 
@@ -123,18 +133,18 @@ namespace SpatialFiltering
 
 
                 Parallel.Invoke(
-                    () => _yuv.Yplane = ConvertTo2DExtendedArray(_yuv.Ybytes, _yuv.YWidth, _yuv.YHeight),
-                    () => _yuv.Uplane = ConvertTo2DArray(_yuv.Ubytes, _yuv.UWidth, _yuv.UHeight),
-                    () => _yuv.Vplane = ConvertTo2DArray(_yuv.Vbytes, _yuv.VWidth, _yuv.VHeight));
+                    () => _yuv.Yplane = ConvertTo2DExtendedArray(_yuv.Ybytes, _yuv.YHeight, _yuv.YWidth),
+                    () => _yuv.Uplane = ConvertTo2DArray(_yuv.Ubytes,  _yuv.UHeight, _yuv.UWidth),
+                    () => _yuv.Vplane = ConvertTo2DArray(_yuv.Vbytes, _yuv.VHeight, _yuv.VWidth));
 
 
-                _yuv.YMedian2D = new byte[_yuv.YWidth, _yuv.YHeight];
+                _yuv.YMedian2D = new byte[_yuv.YHeight, _yuv.YWidth];
 
 
                 Parallel.Invoke(
                                 delegate ()
                                 {
-                                    q = true;
+                                   
 
                                     for (int i = 1; i < _yuv.Yplane.GetLength(0) - 1; i++)
                                     {
@@ -143,16 +153,18 @@ namespace SpatialFiltering
                                             FindMedian2D(i, j);
                                         }
                                     }
+
+                                    q = true;
                                 },
 
-                                 delegate ()
+                                delegate ()
                                  {
                                      while (true)
                                      {
                                          for (int dots = 0; dots < 3; ++dots)
                                          {
                                              Console.Write('.');
-                                             Thread.Sleep(1000);
+                                             Thread.Sleep(500);
                                              if (dots == 2)
                                              {
                                                  if (q == true)
@@ -161,9 +173,12 @@ namespace SpatialFiltering
                                                      break;
                                                  }
 
-                                                 Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
+                                                 Console.SetCursorPosition(Left, Top);
+                                                 Console.Write(new string(' ', 3));
+                                                 Console.SetCursorPosition(Left, Top);
+
                                                  dots = -1;
-                                                 Thread.Sleep(1000);
+                                                 Thread.Sleep(500);
                                              }
                                          }
 
@@ -183,7 +198,7 @@ namespace SpatialFiltering
             return this;
         }
 
-
+       
         /// <summary>
         /// Writes y, u, v byte arrays to a new .yuv file with one or two dimensional array implementation.
         /// </summary>
@@ -243,26 +258,6 @@ namespace SpatialFiltering
             }
 
 
-
-            //int count = 0;
-            ////////////////////////////////
-            //while (count < _yuv.Ybytes.Length)
-            //{
-            //    for (int i = 0; i < _yuv.Yplane.GetLength(0); i++)
-            //    {
-            //        for (int j = 0; j < _yuv.Yplane.GetLength(1); j++)
-            //        {
-            //            if (_yuv.Yplane[i, j] == _yuv.Ybytes[count])
-            //            {
-            //                Console.WriteLine( $"[{i},{j}] = {count} ");
-            //            }
-            //            count++;
-            //        }
-            //        Console.WriteLine();
-            //    }
-            //}
-
-          
 
             return this;
         }
@@ -468,6 +463,13 @@ namespace SpatialFiltering
         }
 
 
+        private void InformUser()
+        {
+            _outputProvider("\n\n  Getting things ready...\n");
+            _outputProvider($"  Filter is now being applied");
+        }
+
+
         private void FindMedian(int index)
         {
             List<byte> temp = new();
@@ -491,7 +493,7 @@ namespace SpatialFiltering
             List<byte> temp = new();
 
 
-            // Find the correct 3x3 block on given index value
+            // Find the correct 3x3 block on given index
             for (int i = i_index - 1; i <= i_index + 1; i++)
             {
                 for (int j = j_index - 1; j <= j_index + 1; j++)
@@ -500,7 +502,7 @@ namespace SpatialFiltering
                 }
             }
 
-            temp.Sort();
+            temp.Sort();            
             _yuv.YMedian2D[i_index - 1, j_index - 1] = temp.ElementAt((int)((Math.Pow(mask, 2) - 1) / 2));
         }
 
@@ -508,16 +510,18 @@ namespace SpatialFiltering
 
 
 
+        #region Hepler Methods
+
         /// <summary>
         /// Converts the one dimensional extended byte array passed, to the equivalent two dimensional 
         /// non extended array at first and then extends it correctly.
         /// </summary>
-        private static byte[,] ConvertTo2DExtendedArray(byte[] input, int width, int height)
+        private static byte[,] ConvertTo2DExtendedArray(byte[] input, int height, int width)
         {
 
             int count = 0;
-            byte[,] output = new byte[width, height];
-            byte[,] outputExtended = new byte[width + 2, height + 2];
+            byte[,] output = new byte[height, width];
+            byte[,] outputExtended = new byte[height + 2, width + 2];
 
 
 
@@ -536,7 +540,7 @@ namespace SpatialFiltering
 
             #region For testing purposes 
 
-            //byte[,] a = new byte[,] {
+            //byte[,] output = new byte[,] {
             //                            { 1,4,0,1,3,1 },
             //                            { 2,2,4,2,2,3 },
             //                            { 1,0,1,0,1,0 },
@@ -544,6 +548,7 @@ namespace SpatialFiltering
             //                            { 2,5,3,1,2,5 },
             //                            { 1,1,4,2,3,0 }
             //    };
+
 
             //  extended array expected:  { 1,1,4,0,1,3,1,1 }
             //                            { 1,1,4,0,1,3,1,1 }
@@ -570,8 +575,8 @@ namespace SpatialFiltering
                     // Only for first row
                     if (i is 0)
                     {
-                        outputExtended[i, j] = j is 0  ? output[i, j] 
-                                                       : j == outputExtended.GetLength(1) - 1  ? output[i, j - 2] 
+                        outputExtended[i, j] = j is 0 ? output[i, j]
+                                                       : j == outputExtended.GetLength(1) - 1 ? output[i, j - 2]
                                                        : output[i, j - 1];
 
 
@@ -582,7 +587,7 @@ namespace SpatialFiltering
                     else if (i == outputExtended.GetLength(0) - 1)
                     {
 
-                        outputExtended[i, j] = j is 0  ? output[i - 2, j] 
+                        outputExtended[i, j] = j is 0 ? output[i - 2, j]
                                                        : j == outputExtended.GetLength(1) - 1 ? output[i - 2, j - 2]
                                                        : output[i - 2, j - 1];
 
@@ -594,38 +599,36 @@ namespace SpatialFiltering
                     else if (j is 0)
                     {
                         outputExtended[i, j] = output[i - 1, j];
-                        
+
                         //Console.Write(outputExtended[i, j] + "  ");
                     }
 
                     // Only for last column
                     else if (j == outputExtended.GetLength(1) - 1)
                     {
-                        outputExtended[i, j] = output[i -1 , j - 2];
+                        outputExtended[i, j] = output[i - 1, j - 2];
 
                         //Console.Write(outputExtended[i, j] + "  ");
                     }
 
                     // For every other element
-                    else 
+                    else
                     {
                         if (i <= output.GetLength(0) && j <= output.GetLength(1))
                         {
                             outputExtended[i, j] = output[i - 1, j - 1];
-                            //Console.Write(outputExtended[i, j] + "  "); 
+                            //Console.Write(outputExtended[i, j] + "  ");
                         }
-                        
-                        
                     }
                 }
 
                 // Array size is too big, thus can't fit any screen size,
-                // every change of line is show with a '+' sign for debugging purposes
+                // every change of line is shown with a '+' sign to check boundaries values for debugging purposes
                 //Console.WriteLine(" + ");
 
             }
 
-
+           
           
             return outputExtended;
         }
@@ -635,11 +638,11 @@ namespace SpatialFiltering
         /// <summary>
         /// Converts the one dimensional byte array passed, to the equivalent two dimensional non extended array.
         /// </summary>
-        private static byte[,] ConvertTo2DArray(byte[] input, int width, int height)
+        private static byte[,] ConvertTo2DArray(byte[] input, int height, int width)
         {
 
             int count = -1;
-            byte[,] output = new byte[width, height];
+            byte[,] output = new byte[height, width];
             
 
             // Copies the passed array to the new two dimensional non extended array   
@@ -668,14 +671,9 @@ namespace SpatialFiltering
                 Environment.Exit(0);
         }
 
+        #endregion
 
 
-        private void InformUser()
-        {
-            _outputProvider("\n\n  Getting things ready...\n");
-            _outputProvider($"  Filter is now being applied");
-        }
 
-
-    } 
+    }
 }

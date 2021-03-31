@@ -12,21 +12,18 @@ namespace SpatialFiltering
         static void Main(string[] args)
         {
 
-            ConfigStartup(args);
+            //ConfigStartup(args);
                 
             
             YuvModel yuv = new();
 
-
             Console.Clear();
-
 
             Console.Write($"{Assembly.GetAssembly(typeof(Program)).GetName().Name} ");
             Console.Write($"[Version {Assembly.GetAssembly(typeof(Program)).GetName().Version}]");
             Console.WriteLine("\n(c) 2021 Alex Varypatis. All rights reserved.\n");
 
             
-
             while (true)
             {
 
@@ -34,7 +31,7 @@ namespace SpatialFiltering
 
                     
                 controller.Build()
-                          .ApplyMedianFilter()
+                          .ApplyFilter()
                           .Out();
 
 
