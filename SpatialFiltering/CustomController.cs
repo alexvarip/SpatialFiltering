@@ -23,8 +23,10 @@ namespace SpatialFiltering
 
 
 
+
+        #region Constructor
         /// <summary>
-        /// Custom controller using Dependecy Injection for handling input/output and given model.  
+        /// Custom controller constructor using Dependecy Injection for handling input/output and given model.  
         /// </summary>
         public CustomController(Func<string> inputProvider, Action<string> outputProvider, YuvModel yuv)
         {
@@ -32,8 +34,11 @@ namespace SpatialFiltering
             _outputProvider = outputProvider;
             _yuv = yuv;
         }
+        #endregion
 
 
+
+        #region Controller Actions
         /// <summary>
         /// Gets all the essential information and reads from a specified file.
         /// </summary>
@@ -49,7 +54,6 @@ namespace SpatialFiltering
         }
 
        
-
         /// <summary>
         /// Applies Median Filtering with selected window/mask size for the one or two dimensional implementations respectively.
         /// </summary>
@@ -263,8 +267,11 @@ namespace SpatialFiltering
             return this;
         }
 
+        #endregion
 
 
+
+        #region Private Methods
 
         private void GetInformation()
         {
@@ -449,11 +456,7 @@ namespace SpatialFiltering
             var result = _inputProvider();
             _ = int.TryParse(result, out value);
 
-            if (value is 1)
-                _outputProvider("\n  Please specify window size (i.e. 3):\n\n  Usage: [integer]\n  Window: 3 [default]");
-            else if (value is 2)
-                _outputProvider("\n  Please specify mask size (i.e. 3x3):\n  Mask: 3 [default]");
-
+            _outputProvider("\n  Please specify window/mask size\n\n  Usage: [integer]\n    integer  An odd number specifies the mask\n\n  Window/Mask: 3 [default]");
 
             Console.ReadKey();
             _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
@@ -501,9 +504,7 @@ namespace SpatialFiltering
             _yuv.YMedian2D[i_index - 1, j_index - 1] = temp.ElementAt((int)((Math.Pow(mask, 2) - 1) / 2));
         }
 
-
-
-
+        #endregion
 
 
 
