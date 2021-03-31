@@ -16,13 +16,9 @@ namespace SpatialFiltering
         private readonly Func<string> _inputProvider;
         private readonly Action<string> _outputProvider;
         private readonly YuvModel _yuv;
+        private string _outfilepath = "";
         private int value = 0;
         private int mask = 3;
-#if DEBUG
-        private string filepath = @"C:\Users\alexv\Downloads\HW1\HW1\BlowingBubbles_416x240.yuv";
-        private string outpath1 = @"C:\Users\alexv\Downloads\HW1\HW1\BlowingBubbles_416x240_filtered_1D.yuv"; 
-        private string outpath2 = @"C:\Users\alexv\Downloads\HW1\HW1\BlowingBubbles_416x240_filtered_2D.yuv";
-#endif
 
         #endregion
 
@@ -204,10 +200,12 @@ namespace SpatialFiltering
         /// </summary>
         public CustomController Out()
         {
+            _outfilepath = $"{Environment.CurrentDirectory}\\BlowingBubbles_416x240_filtered_{value}D.yuv";
+
             if (value is 1)
             {
                 // Write all component byte arrays to a new .yuv file with 1D array implementation.
-                using (FileStream fsNew = new FileStream(outpath1, FileMode.Create, FileAccess.Write))
+                using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
                 {
                     for (int i = 0; i < _yuv.YMedian.Length; i++)
                     {
@@ -227,9 +225,9 @@ namespace SpatialFiltering
             }
             else if (value is 2)
             {
-
+                
                 // Write all component byte arrays to a new .yuv file with 2D array implementation.
-                using (FileStream fsNew = new FileStream(outpath2, FileMode.Create, FileAccess.Write))
+                using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
                 {
                     for (int i = 0; i < _yuv.YMedian2D.GetLength(0); i++)
                     {
@@ -348,10 +346,10 @@ namespace SpatialFiltering
             _outputProvider($"\n  Resolution: {_yuv.YWidth} x {_yuv.YHeight}");
             _outputProvider($"\n  Width: {_yuv.YWidth} pixels");
             _outputProvider($"\n  Height: {_yuv.YHeight} pixels");
-            _outputProvider($"\n  Item Type: {Path.GetExtension(filepath).ToUpper()} File");
-            _outputProvider($"\n  Folder Path: {Path.GetDirectoryName(filepath)}");
-            _outputProvider($"\n  Date Created: {File.GetCreationTime(filepath)}");
-            _outputProvider($"\n  Date Modified: {File.GetLastAccessTime(filepath)}");
+            _outputProvider($"\n  Item Type: {Path.GetExtension(Program.filepath).ToUpper()} File");
+            _outputProvider($"\n  Folder Path: {Path.GetDirectoryName(Program.filepath)}");
+            _outputProvider($"\n  Date Created: {File.GetCreationTime(Program.filepath)}");
+            _outputProvider($"\n  Date Modified: {File.GetLastAccessTime(Program.filepath)}");
             _outputProvider($"\n  Size: {_yuv.YTotalBytes} KB");
             _outputProvider($"\n  Owner: {Environment.UserName}");
             _outputProvider($"\n  Computer: {Environment.MachineName}");
@@ -362,8 +360,8 @@ namespace SpatialFiltering
         {
             try
             {
-
-                using (FileStream fsSource = new(filepath, FileMode.Open, FileAccess.Read))
+                
+                using (FileStream fsSource = new(Program.filepath, FileMode.Open, FileAccess.Read))
                 {
 
                     // Write y component into a byte array.
