@@ -82,7 +82,7 @@ namespace SpatialFiltering
         {
             Console.WriteLine($"\nUsage: executable [options] [path-to-file]");
             Console.WriteLine("\nOptions:");
-            Console.WriteLine("  -i | --import   Import the specified file.");
+            Console.WriteLine("  -i | --import   Import a file.");
             Console.WriteLine("\npath-to-file:");
             Console.WriteLine("  The path to a .yuv file to import.");
         }

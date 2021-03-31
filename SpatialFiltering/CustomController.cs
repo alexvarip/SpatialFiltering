@@ -200,6 +200,8 @@ namespace SpatialFiltering
         /// </summary>
         public CustomController Out()
         {
+
+            // Fix output directory for linux
             _outfilepath = $"{Environment.CurrentDirectory}\\BlowingBubbles_416x240_filtered_{value}D.yuv";
 
             if (value is 1)
