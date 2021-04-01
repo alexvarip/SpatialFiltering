@@ -205,8 +205,8 @@ namespace SpatialFiltering
         public CustomController Out()
         {
 
-            // Fix output directory for linux
-            _outfilepath = $"{Environment.CurrentDirectory}\\BlowingBubbles_416x240_filtered_{mask}x{mask}_{value}D.yuv";
+            CreateOutPath();
+
 
             if (value is 1)
             {
@@ -231,7 +231,7 @@ namespace SpatialFiltering
             }
             else if (value is 2)
             {
-                
+
                 // Write all component byte arrays to a new .yuv file with 2D array implementation.
                 using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
                 {
@@ -262,8 +262,8 @@ namespace SpatialFiltering
             }
 
 
-
             _outputProvider($"\n\n  Your file is ready to use at the following path:\n  {_outfilepath}");
+
 
             return this;
         }
@@ -473,6 +473,20 @@ namespace SpatialFiltering
         {
             _outputProvider("\n\n  Getting things ready...\n");
             _outputProvider("  Filter is now being applied");
+        }
+
+
+        private void CreateOutPath()
+        {
+            string path = $"{Environment.CurrentDirectory}/generated";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory($"{Environment.CurrentDirectory}/generated");
+                _outfilepath = $"{path}/BlowingBubbles_416x240_filtered_{mask}x{mask}_{value}D.yuv";
+            }
+            else
+                _outfilepath = $"{Environment.CurrentDirectory}/generated/BlowingBubbles_416x240_filtered_{mask}x{mask}_{value}D.yuv";
         }
 
 
