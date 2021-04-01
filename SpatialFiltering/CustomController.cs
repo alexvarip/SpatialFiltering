@@ -26,7 +26,7 @@ namespace SpatialFiltering
 
         #region Constructor
         /// <summary>
-        /// Custom controller constructor using Dependecy Injection for handling input/output and given model.  
+        /// Custom controller constructor using Dependecy Injection for handling console input/output and given model.  
         /// </summary>
         public CustomController(Func<string> inputProvider, Action<string> outputProvider, YuvModel yuv)
         {
@@ -41,7 +41,7 @@ namespace SpatialFiltering
         #region Controller Actions
 
         /// <summary>
-        /// Gets all the essential information and reads from a specified file.
+        /// Reads from a specified .yuv file and gets all the essential information about it.
         /// </summary>
         public CustomController Build()
         {
@@ -56,7 +56,7 @@ namespace SpatialFiltering
 
        
         /// <summary>
-        /// Applies Median Filtering with selected window/mask size for the one or two dimensional implementations respectively.
+        /// Applies the selected from the user Filter with the specified window/mask size with the one or two dimensional implementations.
         /// </summary>
         public CustomController ApplyFilter()
         {
@@ -200,7 +200,7 @@ namespace SpatialFiltering
 
        
         /// <summary>
-        /// Writes y, u, v byte arrays to a new .yuv file with one or two dimensional array implementation.
+        /// Writes the y, u, v byte arrays to a new .yuv file with one or two dimensional array implementation.
         /// </summary>
         public CustomController Out()
         {
@@ -452,9 +452,12 @@ namespace SpatialFiltering
             _outputProvider("\n\n  Do you wish to implement the creation task using 1 or 2 dimensional arrays: ");
 
             var result = _inputProvider();
-            _ = int.TryParse(result, out value);
+            
+            if (!int.TryParse(result, out value))
+                value = 2;
 
-            _outputProvider("\n  Please specify window/mask size\n\n  Usage: [integer]\n    integer  An odd number specifies the mask\n\n  Window/Mask: 3 [default]");
+            _outputProvider("\n  Please specify window/mask size [default=3]\n\n  ");
+            _outputProvider("Usage: [integer]\n    integer  \t  A positive number specifies the mask.\n\n [Press Enter to continue]");
 
             Console.ReadKey();
             _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
@@ -529,7 +532,7 @@ namespace SpatialFiltering
         #region Private Helper Methods
 
         /// <summary>
-        /// Extends an one dimensional array at the left-most and right-most indexes according to mask.
+        /// Extends an one dimensional array at the left-most and right-most indexes according to selected mask.
         /// </summary>
         private byte[] Extend1DArray(byte[] input, int totalbytes)
         {
@@ -549,8 +552,8 @@ namespace SpatialFiltering
 
 
         /// <summary>
-        /// Converts the one dimensional extended byte array passed, to the equivalent two dimensional 
-        /// non extended array at first and then extends it according to the mask.
+        /// Converts the one dimensional byte array passed, to the equivalent two dimensional 
+        /// non extended array at first and then extends it according to the selected mask.
         /// </summary>
         private byte[,] ConvertTo2DExtendedArray(byte[] input, int height, int width)
         {
