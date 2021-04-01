@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace SpatialFiltering
@@ -11,8 +12,8 @@ namespace SpatialFiltering
         {
 
             ConfigStartup(args);
-                
-            
+
+
             YuvModel yuv = new();
 
 
@@ -22,15 +23,23 @@ namespace SpatialFiltering
             Console.Write($"[Version {Assembly.GetAssembly(typeof(Program)).GetName().Version}]");
             Console.WriteLine("\n(c) 2021 Alex Varypatis. All rights reserved.\n");
 
-            
+
+
             while (true)
             {
 
                 var controller = new CustomController(Console.ReadLine, Console.Write, yuv);
 
-                    
+                if (!controller.filters.TryGetValue(args[1], out Action filter))
+                {
+                    Console.WriteLine($"'{args[1]}' is not recognized as a filter.\n");
+                    Help();
+                    Environment.Exit(-1);
+                }
+
+
                 controller.Build()
-                          .ApplyFilter()
+                          .ApplyFilter(filter)
                           .Out();
 
 
@@ -43,21 +52,23 @@ namespace SpatialFiltering
 
         private static void ConfigStartup(string[] args)
         {
-            if (args.Length is 2 && (args[0] is "-i" ||  args[0] is "--import"))
+            if (args[0] is "-h" || args[0] is "--help")
             {
-                string extension = "";
+                Help();
+                Environment.Exit(0);
+            }
+            else if (args.Length is 4 && (args[0] is "-f" ||  args[0] is "--filter")
+                                 && (args[2] is "-i" ||  args[2] is "--import"))
+            {
 
-                if (args[1].Length >= 5 && args[1][^3..] is "yuv")
-                {
-                    extension = args[1][^3..];
-                    filepath = args[1];
-                }             
+                if (args[3].Length >= 5 && args[3][^3..] is "yuv")
+                    filepath = args[3];
                 else
                 {
-                    Console.WriteLine($"'{args[1]}' is not recognized as an file extension,\noperable program or batch file.");
+                    Console.WriteLine($"'{args[3]}' is not recognized as an file extension,\noperable program or batch file.");
                     Console.WriteLine("\nA file extension of type 'yuv' is expected.\n");
                     Environment.Exit(0);
-                }
+                }                
             }
             else
             {
@@ -80,9 +91,13 @@ namespace SpatialFiltering
 
         private static void Help()
         {
-            Console.WriteLine($"\nUsage: executable [options] [path-to-file]");
+            Console.WriteLine($"\nUsage: executable [options[-f]] [filter] [options[-i]] [path-to-file]");
             Console.WriteLine("\nOptions:");
-            Console.WriteLine("  -i | --import   Import a file.");
+            Console.WriteLine("  -h | --help       Display help.");
+            Console.WriteLine("  -f | --filter     Select a filter.");
+            Console.WriteLine("  -i | --import     Import a file.");
+            Console.WriteLine("\nfilter:");
+            Console.WriteLine("  Median\n  Average");
             Console.WriteLine("\npath-to-file:");
             Console.WriteLine("  The path to a .yuv file to import.");
         }
