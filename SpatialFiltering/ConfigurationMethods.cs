@@ -53,10 +53,16 @@ namespace SpatialFiltering
             _outputProvider("\n └─────────────────────────┘ ");
 
             _outputProvider("\n\n  <Y component resolution>");
-            _outputProvider("\n  width: ");
+            _outputProvider("\n  width: "); var (Left, Top) = Console.GetCursorPosition();
+            
             var result = _inputProvider();
             if (int.TryParse(result, out value))
                 _yuv.YWidth = value;
+
+            
+            //Console.SetCursorPosition(Left + 3, Top);
+            //Console.Write(new string(' ', 3));
+            
 
             UserExit(result);
 
@@ -220,17 +226,26 @@ namespace SpatialFiltering
             _outputProvider("\n ▒            Y U V              ▒ ");
             _outputProvider("\n └───────────────────────────────┘ ");
 
+
+            string result = "";
+           
             _outputProvider("\n\n  Do you wish to implement the creation task using 1 or 2 dimensional arrays: ");
 
-            var result = _inputProvider();
+            result = _inputProvider();
 
             UserExit(result);
 
             if (!int.TryParse(result, out value))
                 value = 2;
+            else if (value > 2)
+            {
+                value = 2;
+                _outputProvider($"\n  [SYSTEM] The creation task implementation was successfully restored using one of the correct values: {value}\n");
+            }
+                
 
-            _outputProvider("\n  Please specify window/mask size [default=3]\n\n  ");
-            _outputProvider("Usage: [integer]\n    integer  \t   A positive number specifies the mask.\n\n [Press Enter to continue]");
+            _outputProvider("\n\n  Please select window/mask size [default = 3] (Usage: [integer])\n  [Press Enter to continue]");
+            //_outputProvider("\t\t\t\t\t\tUsage: [integer]\n\t\t\t\t\t\t  integer  \t A positive number specifies the mask.\n\n [Press Enter to continue]");
 
             Console.ReadKey();
             _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
