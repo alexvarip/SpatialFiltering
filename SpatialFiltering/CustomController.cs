@@ -68,21 +68,26 @@ namespace SpatialFiltering
             if (value is 1)
             {
 
+                byte[] YbytesExtended = Extend1DArray(_yuv.Ybytes, _yuv.YTotalBytes);
+
+
                 InformUser();
+
 
                 Array.Resize(ref _yuv.YMedian, _yuv.YResolution);
 
-                int index = 1;
 
-                
                 Parallel.Invoke(
                                 delegate () 
                                 {
-                                    while (index < _yuv.Ybytes.Length - 1)
+                                    
+                                    int index = (mask - 1) / 2;
+
+                                    while (index < YbytesExtended.Length - ((mask - 1) / 2))
                                     {
                                         q = true;
 
-                                        FindMedian(index);
+                                        FindMedian(YbytesExtended, index);
                                         index++;
                                     }
                                 },
@@ -141,10 +146,9 @@ namespace SpatialFiltering
                                 delegate ()
                                 {
                                    
-
-                                    for (int i = 1; i < _yuv.Yplane.GetLength(0) - 1; i++)
+                                    for (int i = ((mask - 1) / 2); i < _yuv.Yplane.GetLength(0) - ((mask - 1) / 2); i++)
                                     {
-                                        for (int j = 1; j < _yuv.Yplane.GetLength(1) - 1; j++)
+                                        for (int j = ((mask - 1) / 2); j < _yuv.Yplane.GetLength(1) - ((mask - 1) / 2); j++)
                                         {
                                             FindMedian2D(i, j);
                                         }
@@ -190,7 +194,7 @@ namespace SpatialFiltering
 
             }
 
-
+            
             return this;
         }
 
@@ -202,7 +206,7 @@ namespace SpatialFiltering
         {
 
             // Fix output directory for linux
-            _outfilepath = $"{Environment.CurrentDirectory}\\BlowingBubbles_416x240_filtered_{value}D.yuv";
+            _outfilepath = $"{Environment.CurrentDirectory}\\BlowingBubbles_416x240_filtered_{mask}x{mask}_{value}D.yuv";
 
             if (value is 1)
             {
@@ -258,6 +262,8 @@ namespace SpatialFiltering
             }
 
 
+
+            _outputProvider($"\n\n  Your file is ready to use at the following path:\n  {_outfilepath}");
 
             return this;
         }
@@ -326,9 +332,10 @@ namespace SpatialFiltering
             _yuv.VTotalBytes = _yuv.VResolution;
 
 
-            Array.Resize(ref _yuv.Ybytes, _yuv.YResolution + 2);
-            Array.Resize(ref _yuv.Ubytes, _yuv.UResolution + 2);
-            Array.Resize(ref _yuv.Vbytes, _yuv.VResolution + 2);
+
+            Array.Resize(ref _yuv.Ybytes, _yuv.YResolution);
+            Array.Resize(ref _yuv.Ubytes, _yuv.UResolution);
+            Array.Resize(ref _yuv.Vbytes, _yuv.VResolution);
 
 
             FileProperties();
@@ -367,7 +374,7 @@ namespace SpatialFiltering
                 {
 
                     // Write y component into a byte array.
-                    int numBytesRead = 1;
+                    int numBytesRead = 0;
                     while (_yuv.YTotalBytes > 0)
                     {
                         // Read may return anything from 0 to numBytesToRead.
@@ -381,10 +388,6 @@ namespace SpatialFiltering
                         _yuv.YTotalBytes -= n;
                     }
                     _yuv.YTotalBytes = _yuv.Ybytes.Length;
-
-                    // Extend array at the left-most and right-most elements
-                    _yuv.Ybytes[0] = _yuv.Ybytes[1];
-                    _yuv.Ybytes[_yuv.YTotalBytes - 1] = _yuv.Ybytes[_yuv.YTotalBytes - 2];
 
 
                     // Write u component into a byte array.
@@ -434,7 +437,7 @@ namespace SpatialFiltering
 
         }
 
-
+       
         private void UserAction()
         {
 
@@ -458,32 +461,32 @@ namespace SpatialFiltering
             _outputProvider("  Your preference: ");
             
             result = _inputProvider();
-            _ = int.TryParse(result, out mask);
-            
+
+
+            if (!int.TryParse(result, out mask))
+                mask = 3;
+
         }
 
 
         private void InformUser()
         {
             _outputProvider("\n\n  Getting things ready...\n");
-            _outputProvider($"  Filter is now being applied");
+            _outputProvider("  Filter is now being applied");
         }
 
 
-        private void FindMedian(int index)
+        private void FindMedian(byte[] input, int index)
         {
             List<byte> temp = new();
 
             for (int i = 0; i < mask; i++)
             {
-                if (index is 1)
-                    temp.Add(_yuv.Ybytes[index - 1 + i]);
-                else
-                    temp.Add(_yuv.Ybytes[index - ((mask - 1) / 2) + i]);
+                temp.Add(input[index - ((mask - 1) / 2) + i]);
             }
 
             temp.Sort();
-            _yuv.YMedian[index - 1] = temp.ElementAt(((mask - 1) / 2));
+            _yuv.YMedian[index - ((mask - 1) / 2)] = temp.ElementAt((mask - 1) / 2);
 
         }
 
@@ -492,36 +495,55 @@ namespace SpatialFiltering
         {
             List<byte> temp = new();
 
-
-            // Find the correct 3x3 block on given index
-            for (int i = i_index - 1; i <= i_index + 1; i++)
+            // Find the correct block on given index and mask
+            for (int i = i_index - ((mask - 1) / 2); i <= i_index + ((mask - 1) / 2); i++)
             {
-                for (int j = j_index - 1; j <= j_index + 1; j++)
+                for (int j = j_index - ((mask - 1) / 2); j <= j_index + ((mask - 1) / 2); j++)
                 {
                     temp.Add(_yuv.Yplane[i, j]);
                 }
             }
 
             temp.Sort();            
-            _yuv.YMedian2D[i_index - 1, j_index - 1] = temp.ElementAt((int)((Math.Pow(mask, 2) - 1) / 2));
+            _yuv.YMedian2D[i_index - ((mask - 1) / 2), j_index - ((mask - 1) / 2)] = temp.ElementAt((int)((Math.Pow(mask, 2) - 1) / 2));
         }
 
         #endregion
 
 
 
-        #region Hepler Methods
+        #region Private Helper Methods
+
+        /// <summary>
+        /// Extends an one dimensional array at the left-most and right-most indexes according to mask.
+        /// </summary>
+        private byte[] Extend1DArray(byte[] input, int totalbytes)
+        {
+
+            byte[] outputExtended = new byte[totalbytes + (mask - 1)];
+
+
+            for (int i = 0; i < outputExtended.Length; i++)
+            {
+                outputExtended[i] = i < (mask - 1) / 2 ? input[(mask - 1) / 2] 
+                                : i > input.Length - 1 ? input[^1] : input[i];
+            }
+
+            return outputExtended;
+        }
+
+
 
         /// <summary>
         /// Converts the one dimensional extended byte array passed, to the equivalent two dimensional 
-        /// non extended array at first and then extends it correctly.
+        /// non extended array at first and then extends it according to the mask.
         /// </summary>
-        private static byte[,] ConvertTo2DExtendedArray(byte[] input, int height, int width)
+        private byte[,] ConvertTo2DExtendedArray(byte[] input, int height, int width)
         {
 
-            int count = 0;
+            int count = -1;
             byte[,] output = new byte[height, width];
-            byte[,] outputExtended = new byte[height + 2, width + 2];
+            byte[,] outputExtended = new byte[height + (mask - 1), width + (mask - 1)];
 
 
 
@@ -549,7 +571,6 @@ namespace SpatialFiltering
             //                            { 1,1,4,2,3,0 }
             //    };
 
-
             //  extended array expected:  { 1,1,4,0,1,3,1,1 }
             //                            { 1,1,4,0,1,3,1,1 }
             //                            { 2,2,2,4,2,2,3,3 }
@@ -559,64 +580,78 @@ namespace SpatialFiltering
             //                            { 1,1,1,4,2,3,0,0 }
             //                            { 1,1,1,4,2,3,0,0 }
 
+
+            //                    mask(3) : i + 2 / j + 2
+            //                    mask(5) : i + 4 / j + 4
+            //                    mask(7) : i + 6 / j + 6
+            //                    mask(9) : i + 8 / j + 8
+
+            //                    { X,X,X,X,X,X,X,X,X,X }
+            //                    { X,X,X,X,X,X,X,X,X,X }
+            //                    { X,X,1,4,0,1,3,1,X,X }
+            //                    { X,X,2,2,4,2,2,3,X,X }
+            //                    { X,X,1,0,1,0,1,0,X,X }
+            //                    { X,X,1,2,1,0,2,2,X,X }
+            //                    { X,X,2,5,3,1,2,5,X,X }
+            //                    { X,X,1,1,4,2,3,0,X,X }
+            //                    { X,X,X,X,X,X,X,X,X,X }
+            //                    { X,X,X,X,X,X,X,X,X,X }   mask:5x5
+
             #endregion
 
 
 
-            // Extend border values outside with values at boundary
-            //Console.WriteLine("extended:");
-
+            // Extend border (with extension size according to mask) values outside with values at boundary
 
             for (int i = 0; i < outputExtended.GetLength(0); i++)
             {
                 for (int j = 0; j < outputExtended.GetLength(1); j++)
                 {
 
-                    // Only for first row
-                    if (i is 0)
+                    // Only for first extended rows
+                    if (i < (mask - 1) / 2)
                     {
-                        outputExtended[i, j] = j is 0 ? output[i, j]
-                                                       : j == outputExtended.GetLength(1) - 1 ? output[i, j - 2]
-                                                       : output[i, j - 1];
-
+                        outputExtended[i, j] = j <= ((mask - 1) / 2) ? output[0, 0]
+                                                           : j >= outputExtended.GetLength(1) - 1 - ((mask - 1) / 2) ? output[0, output.GetLength(1) - 1]
+                                                           : output[0, j - ((mask - 1) / 2)];
 
                         //Console.Write(outputExtended[i, j] + "  ");
                     }
 
-                    // Only for last row
-                    else if (i == outputExtended.GetLength(0) - 1)
+                    //Only for last extended rows
+                    else if (i >= outputExtended.GetLength(0) - ((mask - 1) / 2))
                     {
 
-                        outputExtended[i, j] = j is 0 ? output[i - 2, j]
-                                                       : j == outputExtended.GetLength(1) - 1 ? output[i - 2, j - 2]
-                                                       : output[i - 2, j - 1];
-
+                        outputExtended[i, j] = j <= ((mask - 1) / 2) ? output[output.GetLength(0) - 1, 0]
+                                                        : j >= outputExtended.GetLength(1) - 1 - ((mask - 1) / 2)
+                                                        ? output[output.GetLength(0) - 1, output.GetLength(1) - 1]
+                                                        : output[output.GetLength(0) - 1, j - ((mask - 1) / 2)];
 
                         //Console.Write(outputExtended[i, j] + "  ");
                     }
 
-                    // Only for first column
-                    else if (j is 0)
+                    // Only for first extended columns
+                    else if (j < (mask - 1) / 2)
                     {
-                        outputExtended[i, j] = output[i - 1, j];
+                        outputExtended[i, j] = output[i - ((mask - 1) / 2), 0];
 
                         //Console.Write(outputExtended[i, j] + "  ");
                     }
 
-                    // Only for last column
+                    // Only for last extended columns
                     else if (j == outputExtended.GetLength(1) - 1)
                     {
-                        outputExtended[i, j] = output[i - 1, j - 2];
+                        outputExtended[i, j] = output[i - ((mask - 1) / 2), output.GetLength(1) - 1];
 
                         //Console.Write(outputExtended[i, j] + "  ");
                     }
 
                     // For every other element
                     else
-                    {
+                    {                                    
                         if (i <= output.GetLength(0) && j <= output.GetLength(1))
                         {
-                            outputExtended[i, j] = output[i - 1, j - 1];
+                            outputExtended[i, j] = output[i - ((mask - 1) / 2), j - ((mask - 1) / 2)];
                             //Console.Write(outputExtended[i, j] + "  ");
                         }
                     }
@@ -628,8 +663,7 @@ namespace SpatialFiltering
 
             }
 
-           
-          
+                     
             return outputExtended;
         }
 
@@ -638,7 +672,7 @@ namespace SpatialFiltering
         /// <summary>
         /// Converts the one dimensional byte array passed, to the equivalent two dimensional non extended array.
         /// </summary>
-        private static byte[,] ConvertTo2DArray(byte[] input, int height, int width)
+        private byte[,] ConvertTo2DArray(byte[] input, int height, int width)
         {
 
             int count = -1;
@@ -672,7 +706,6 @@ namespace SpatialFiltering
         }
 
         #endregion
-
 
 
     }
