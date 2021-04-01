@@ -7,6 +7,7 @@ namespace SpatialFiltering
     class Program
     {
         public static string filepath = "";
+        public static string keepAlive = "";
 
         static void Main(string[] args)
         {
@@ -14,15 +15,10 @@ namespace SpatialFiltering
             ConfigStartup(args);
 
 
+            AssemblyInfo();
+
+
             YuvModel yuv = new();
-
-
-            Console.Clear();
-
-            Console.Write($"{Assembly.GetAssembly(typeof(Program)).GetName().Name} ");
-            Console.Write($"[Version {Assembly.GetAssembly(typeof(Program)).GetName().Version}]");
-            Console.WriteLine("\n(c) 2021 Alex Varypatis. All rights reserved.\n");
-
 
 
             while (true)
@@ -49,6 +45,16 @@ namespace SpatialFiltering
 
             }
 
+        }
+
+
+        private static void AssemblyInfo()
+        {
+            Console.Clear();
+
+            Console.Write($"{Assembly.GetAssembly(typeof(Program)).GetName().Name} ");
+            Console.Write($"[Version {Assembly.GetAssembly(typeof(Program)).GetName().Version}]");
+            Console.WriteLine("\n(c) 2021 Alex Varypatis. All rights reserved.\n");
         }
 
 
@@ -82,10 +88,18 @@ namespace SpatialFiltering
 
         private static void GetAction()
         {
-            Console.Write("\n\n\nPress any key if you wish to continue...Type 'exit' for exiting application.\n> ");
 
+            Console.Write("\n\n\nPress any key if you wish to continue...Type 'exit' for exiting application.\n> ");
+            
             if (Console.ReadLine().ToLower() is "exit")
                 Environment.Exit(0);
+
+
+            Console.Write("\n\nContinue with the same instance of the yuv model?\n> ");
+
+            if (Console.ReadLine() is "yes")
+                keepAlive = "yes";
+
 
             Console.Clear();
         }

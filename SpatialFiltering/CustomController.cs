@@ -45,10 +45,22 @@ namespace SpatialFiltering
         /// </summary>
         public CustomController Build()
         {
+
+            if (Program.keepAlive is "yes")
+            {
+                _config.UserAction();
+
+                Program.keepAlive = "no";
+
+                return this;
+            }
+                
+
             _config.GetInformation();
 
             if(_config.ReadYuvComponents().IsCompletedSuccessfully)
                 _config.UserAction();
+            
             
             return this;
         }
