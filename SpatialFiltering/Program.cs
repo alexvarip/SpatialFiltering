@@ -41,17 +41,6 @@ namespace SpatialFiltering
         }
 
 
-        private static void GetAction()
-        {
-            Console.Write("\n\nPress any key if you wish to continue...Type 'exit' for exiting application.\n> ");
-
-            if (Console.ReadLine().ToLower() is "exit")
-                Environment.Exit(0);
-
-            Console.Clear();
-        }
-
-
         private static void ConfigStartup(string[] args)
         {
             if (args.Length is 2 && (args[0] is "-i" ||  args[0] is "--import"))
@@ -75,6 +64,17 @@ namespace SpatialFiltering
                 Help();
                 Environment.Exit(0);
             }
+        }
+
+
+        private static void GetAction()
+        {
+            Console.Write("\n\n\nPress any key if you wish to continue...Type 'exit' for exiting application.\n> ");
+
+            if (Console.ReadLine().ToLower() is "exit")
+                Environment.Exit(0);
+
+            Console.Clear();
         }
 
 
