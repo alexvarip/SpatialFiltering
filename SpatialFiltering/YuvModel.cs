@@ -9,43 +9,43 @@ namespace SpatialFiltering
     public class YuvModel
     {
         /// <summary>
-        /// Total bytes of Y component
+        /// Total bytes of Y component.
         /// </summary>
         public int YTotalBytes { get; set; } //= 240 * 416;
 
 
         /// <summary>
-        /// Total bytes of U component
+        /// Total bytes of U component.
         /// </summary>
         public int UTotalBytes { get; set; } //= 120 * 208;
 
 
         /// <summary>
-        /// Total bytes of V component
+        /// Total bytes of V component.
         /// </summary>
         public int VTotalBytes { get; set; } //= 120 * 208;
 
 
         /// <summary>
-        /// For implementing read/wite operations for a .yuv file with one dimensional byte array
+        /// For implementing read/wite operations for a .yuv file with one dimensional byte array.
         /// </summary>
         public byte[] Ybytes, Ubytes, Vbytes;
 
 
         /// <summary>
-        /// For implementing border extension from a given one dimensional byte array with two dimensional byte array
+        /// For implementing border extension from a given one dimensional byte array to two dimensional byte array.
         /// </summary>
         public byte[,] Yplane, Uplane, Vplane;
 
 
         /// <summary>
-        /// Array filled with the median values of the one dimensional byte array
+        /// One dimensional byte array filled with median values.
         /// </summary>
         public byte[] YMedian;
 
 
         /// <summary>
-        /// Array filled with the median values of the converted two dimensional byte array
+        /// Two dimensional array filled with the median values of a converted from one dimensional to two dimensional byte array.
         /// </summary>
         public byte[,] YMedian2D;
 
