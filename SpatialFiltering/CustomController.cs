@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,6 +14,7 @@ namespace SpatialFiltering
 
         private readonly Func<string> _inputProvider;
         private readonly Action<string> _outputProvider;
+        public readonly Dictionary<string, Action> filters;
         private readonly YuvModel _yuv;
         private string _outfilepath = "";
         private int value = 0;
@@ -33,7 +33,19 @@ namespace SpatialFiltering
             _inputProvider = inputProvider;
             _outputProvider = outputProvider;
             _yuv = yuv;
+
+
+            filters = new Dictionary<string, Action>()
+            {
+                { "median", () => { if (ApplyMedianFilter().IsCompletedSuccessfully) 
+                                        _outputProvider("Task successfully completed.\n"); }
+                },
+
+                { "average", () => { if (ApplyAverageFilter().IsCompletedSuccessfully)
+                                        _outputProvider("Task successfully completed.\n"); }
+                }};
         }
+
         #endregion
 
 
@@ -45,7 +57,6 @@ namespace SpatialFiltering
         /// </summary>
         public CustomController Build()
         {
-            
             GetInformation();
 
             if(ReadYuvComponents().IsCompletedSuccessfully)
@@ -58,143 +69,10 @@ namespace SpatialFiltering
         /// <summary>
         /// Applies the selected from the user Filter with the specified window/mask size with the one or two dimensional implementations.
         /// </summary>
-        public CustomController ApplyFilter()
+        public CustomController ApplyFilter(Action action)
         {
-            bool q = false;
-            bool w = false;
+            action.Invoke();
 
-            var (Left, Top) = Console.GetCursorPosition();
-
-            if (value is 1)
-            {
-
-                byte[] YbytesExtended = Extend1DArray(_yuv.Ybytes, _yuv.YTotalBytes);
-
-
-                InformUser();
-
-
-                Array.Resize(ref _yuv.YMedian, _yuv.YResolution);
-
-
-                Parallel.Invoke(
-                                delegate () 
-                                {
-                                    
-                                    int index = (mask - 1) / 2;
-
-                                    while (index < YbytesExtended.Length - ((mask - 1) / 2))
-                                    {
-                                        q = true;
-
-                                        FindMedian(YbytesExtended, index);
-                                        index++;
-                                    }
-                                },
-
-                                delegate ()
-                                {
-                                    while (true)
-                                    {
-                                        for (int dots = 0; dots < 3; ++dots)
-                                        {
-                                            Console.Write('.');
-                                            Thread.Sleep(500);
-                                            if (dots == 2)
-                                            {
-                                                if (q == true)
-                                                {
-                                                    w = true;
-                                                    break;
-                                                }
-
-                                                Console.SetCursorPosition(Left, Top);
-                                                Console.Write(new string(' ', 3));
-                                                Console.SetCursorPosition(Left, Top);
-                                                
-                                                dots = -1;
-                                                Thread.Sleep(500);
-                                            }
-                                        }
-
-                                        if (w == true)
-                                            break;
-                                    }
-                                }
-                );
-
-
-                _outputProvider("Task successfully completed.\n");
-
-            }
-            else if (value is 2)
-            {
-
-                InformUser();
-
-
-                Parallel.Invoke(
-                    () => _yuv.Yplane = ConvertTo2DExtendedArray(_yuv.Ybytes, _yuv.YHeight, _yuv.YWidth),
-                    () => _yuv.Uplane = ConvertTo2DArray(_yuv.Ubytes,  _yuv.UHeight, _yuv.UWidth),
-                    () => _yuv.Vplane = ConvertTo2DArray(_yuv.Vbytes, _yuv.VHeight, _yuv.VWidth));
-
-
-                _yuv.YMedian2D = new byte[_yuv.YHeight, _yuv.YWidth];
-
-
-                Parallel.Invoke(
-                                delegate ()
-                                {
-                                   
-                                    for (int i = ((mask - 1) / 2); i < _yuv.Yplane.GetLength(0) - ((mask - 1) / 2); i++)
-                                    {
-                                        for (int j = ((mask - 1) / 2); j < _yuv.Yplane.GetLength(1) - ((mask - 1) / 2); j++)
-                                        {
-                                            FindMedian2D(i, j);
-                                        }
-                                    }
-
-                                    q = true;
-                                },
-
-                                delegate ()
-                                 {
-                                     while (true)
-                                     {
-                                         for (int dots = 0; dots < 3; ++dots)
-                                         {
-                                             Console.Write('.');
-                                             Thread.Sleep(500);
-                                             if (dots == 2)
-                                             {
-                                                 if (q == true)
-                                                 {
-                                                     w = true;
-                                                     break;
-                                                 }
-
-                                                 Console.SetCursorPosition(Left, Top);
-                                                 Console.Write(new string(' ', 3));
-                                                 Console.SetCursorPosition(Left, Top);
-
-                                                 dots = -1;
-                                                 Thread.Sleep(500);
-                                             }
-                                         }
-
-                                         if (w == true)
-                                             break;
-                                     }
-                                 }
-
-                    );
-
-
-                _outputProvider("Task successfully completed.\n");
-
-            }
-
-            
             return this;
         }
 
@@ -270,12 +148,20 @@ namespace SpatialFiltering
 
         #endregion
 
-
+        
 
         #region Private Methods
 
         private void GetInformation()
         {
+
+            if (!File.Exists(Program.filepath))
+            {
+                Console.Clear();
+                _outputProvider($"Could not find file '{Program.filepath}'.\n");
+                Environment.Exit(-1);
+            }
+            
 
             _outputProvider("\n ┌─────────────────────────┐ ");
             _outputProvider("\n ▓   YUV File Components   ▓ ");
@@ -344,14 +230,13 @@ namespace SpatialFiltering
         
         private void FileProperties()
         {
-            Path.GetFileName(@"C:\Users\alexv\Downloads\HW1\HW1");
-
             _outputProvider("\n");
             _outputProvider("\n ┌──────────────────────┐ ");
             _outputProvider("\n ░   YUV File Details   ▓ ");
             _outputProvider("\n ▓        Y U V         ░ ");
             _outputProvider("\n └──────────────────────┘ ");
             _outputProvider("\n");
+            _outputProvider($"\n  Name: {Path.GetFileName(Program.filepath)}");
             _outputProvider($"\n  Resolution: {_yuv.YWidth} x {_yuv.YHeight}");
             _outputProvider($"\n  Width: {_yuv.YWidth} pixels");
             _outputProvider($"\n  Height: {_yuv.YHeight} pixels");
@@ -427,11 +312,13 @@ namespace SpatialFiltering
                     return Task.CompletedTask;
                 }
             }
-            catch (FileNotFoundException ioEx)
+            catch (FileLoadException ioEx)
             {
                 Console.Clear();
                 Console.WriteLine($"{ioEx.Message}");
-                
+
+                Environment.Exit(-1);
+
                 return Task.FromException(ioEx);
             }
 
@@ -457,7 +344,7 @@ namespace SpatialFiltering
                 value = 2;
 
             _outputProvider("\n  Please specify window/mask size [default=3]\n\n  ");
-            _outputProvider("Usage: [integer]\n    integer  \t  A positive number specifies the mask.\n\n [Press Enter to continue]");
+            _outputProvider("Usage: [integer]\n    integer  \t   A positive number specifies the mask.\n\n [Press Enter to continue]");
 
             Console.ReadKey();
             _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
@@ -493,6 +380,153 @@ namespace SpatialFiltering
         }
 
 
+        private Task ApplyMedianFilter()
+        {
+
+            bool q = false;
+            bool w = false;
+
+            var (Left, Top) = Console.GetCursorPosition();
+
+            if (value is 1)
+            {
+                byte[] YbytesExtended = Extend1DArray(_yuv.Ybytes, _yuv.YTotalBytes);
+
+
+                InformUser();
+
+
+                Array.Resize(ref _yuv.YMedian, _yuv.YResolution);
+
+
+                Parallel.Invoke(
+                                delegate ()
+                                {
+
+                                    int index = (mask - 1) / 2;
+
+                                    while (index < YbytesExtended.Length - ((mask - 1) / 2))
+                                    {
+                                        q = true;
+
+                                        FindMedian(YbytesExtended, index);
+                                        index++;
+                                    }
+                                },
+
+                                delegate ()
+                                {
+                                    while (true)
+                                    {
+                                        for (int dots = 0; dots < 3; ++dots)
+                                        {
+                                            Console.Write('.');
+                                            Thread.Sleep(500);
+                                            if (dots == 2)
+                                            {
+                                                if (q == true)
+                                                {
+                                                    w = true;
+                                                    break;
+                                                }
+
+                                                Console.SetCursorPosition(Left, Top);
+                                                Console.Write(new string(' ', 3));
+                                                Console.SetCursorPosition(Left, Top);
+
+                                                dots = -1;
+                                                Thread.Sleep(500);
+                                            }
+                                        }
+
+                                        if (w == true)
+                                            break;
+                                    }
+                                }
+                );
+
+
+                //_outputProvider("Task successfully completed.\n");
+            }
+
+            else if (value is 2)
+            {
+
+                InformUser();
+
+
+                Parallel.Invoke(
+                    () => _yuv.Yplane = ConvertTo2DExtendedArray(_yuv.Ybytes, _yuv.YHeight, _yuv.YWidth),
+                    () => _yuv.Uplane = ConvertTo2DArray(_yuv.Ubytes, _yuv.UHeight, _yuv.UWidth),
+                    () => _yuv.Vplane = ConvertTo2DArray(_yuv.Vbytes, _yuv.VHeight, _yuv.VWidth));
+
+
+                _yuv.YMedian2D = new byte[_yuv.YHeight, _yuv.YWidth];
+
+
+                Parallel.Invoke(
+                                delegate ()
+                                {
+
+                                    for (int i = ((mask - 1) / 2); i < _yuv.Yplane.GetLength(0) - ((mask - 1) / 2); i++)
+                                    {
+                                        for (int j = ((mask - 1) / 2); j < _yuv.Yplane.GetLength(1) - ((mask - 1) / 2); j++)
+                                        {
+                                            FindMedian2D(i, j);
+                                        }
+                                    }
+
+                                    q = true;
+                                },
+
+                                delegate ()
+                                {
+                                    while (true)
+                                    {
+                                        for (int dots = 0; dots < 3; ++dots)
+                                        {
+                                            Console.Write('.');
+                                            Thread.Sleep(500);
+                                            if (dots == 2)
+                                            {
+                                                if (q == true)
+                                                {
+                                                    w = true;
+                                                    break;
+                                                }
+
+                                                Console.SetCursorPosition(Left, Top);
+                                                Console.Write(new string(' ', 3));
+                                                Console.SetCursorPosition(Left, Top);
+
+                                                dots = -1;
+                                                Thread.Sleep(500);
+                                            }
+                                        }
+
+                                        if (w == true)
+                                            break;
+                                    }
+                                }
+                );
+
+
+                //_outputProvider("Task successfully completed.\n");
+            }
+
+
+
+            return Task.CompletedTask;
+        }
+
+
+        private Task ApplyAverageFilter()
+        {
+
+            return Task.CompletedTask;
+        }
+
+
         private void FindMedian(byte[] input, int index)
         {
             List<byte> temp = new();
@@ -524,6 +558,7 @@ namespace SpatialFiltering
             temp.Sort();            
             _yuv.YMedian2D[i_index - ((mask - 1) / 2), j_index - ((mask - 1) / 2)] = temp.ElementAt((int)((Math.Pow(mask, 2) - 1) / 2));
         }
+
 
         #endregion
 
