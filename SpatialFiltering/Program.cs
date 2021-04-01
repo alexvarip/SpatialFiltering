@@ -28,7 +28,9 @@ namespace SpatialFiltering
             while (true)
             {
 
-                var controller = new CustomController(Console.ReadLine, Console.Write, yuv);
+                var config = new ConfigurationMethods(Console.ReadLine, Console.Write, yuv);
+                var controller = new CustomController(Console.ReadLine, Console.Write, config);
+
 
                 if (!controller.filters.TryGetValue(args[1], out Action filter))
                 {
