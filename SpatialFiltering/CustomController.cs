@@ -13,48 +13,38 @@ namespace SpatialFiltering
         private readonly Func<string> _inputProvider;
         private readonly Action<string> _outputProvider;
         private readonly ConfigurationMethods _config;
-        public readonly Dictionary<string, Action> filters;
         private string _outfilepath = "";
 
 
 
         /// <summary>
-        /// Custom controller constructor using Dependecy Injection for handling console input/output and given model.  
+        /// Custom controller constructor using Dependecy Injection for handling console input/output and given yuv model.  
         /// </summary>
         public CustomController(Func<string> inputProvider, Action<string> outputProvider, ConfigurationMethods config)
         {
             _inputProvider = inputProvider;
             _outputProvider = outputProvider;
             _config = config;
-
-            filters = new Dictionary<string, Action>()
-            {
-                { "median", () => { if (_config.ApplyMedianFilter().IsCompletedSuccessfully) 
-                                        _outputProvider("Task successfully completed.\n"); }
-                },
-
-                { "average", () => { if (_config.ApplyAverageFilter().IsCompletedSuccessfully)
-                                        _outputProvider("Task successfully completed.\n"); }
-                }};
         }
 
 
 
         /// <summary>
-        /// Reads from a specified .yuv file and gets all the essential information about it.
+        /// Reads from a .yuv file and gets all the essential information about it.
         /// </summary>
         public CustomController Build()
         {
 
             if (Program.keepAlive is "yes")
             {
+                Program.keepAlive = "no";
+
                 _config.UserAction();
 
-                Program.keepAlive = "no";
 
                 return this;
             }
-                
+
 
             _config.GetInformation();
 
@@ -68,7 +58,7 @@ namespace SpatialFiltering
 
         
         /// <summary>
-        /// Applies the selected from the user Filter with the specified window/mask size with the one or two dimensional implementations.
+        /// Applies the selected from the user Filter with the specified window/mask size with either one or two dimensional implementations.
         /// </summary>
         public CustomController ApplyFilter(Action action)
         {
@@ -88,54 +78,54 @@ namespace SpatialFiltering
             _outfilepath = _config.CreateOutPath();
 
 
-            if (_config.value is 1)
+            if (_config._filters._yuv.Dimensions is 1)
             {
                 // Write all component byte arrays to a new .yuv file with 1D array implementation.
                 using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
                 {
-                    for (int i = 0; i < _config._yuv.YMedian.Length; i++)
+                    for (int i = 0; i < _config._filters._yuv.YMedian.Length; i++)
                     {
-                        fsNew.WriteByte(_config._yuv.YMedian[i]);
+                        fsNew.WriteByte(_config._filters._yuv.YMedian[i]);
                     }
 
-                    for (int i = 0; i < _config._yuv.Ubytes.Length; i++)
+                    for (int i = 0; i < _config._filters._yuv.Ubytes.Length; i++)
                     {
-                        fsNew.WriteByte(_config._yuv.Ubytes[i]);
+                        fsNew.WriteByte(_config._filters._yuv.Ubytes[i]);
                     }
 
-                    for (int i = 0; i < _config._yuv.Vbytes.Length; i++)
+                    for (int i = 0; i < _config._filters._yuv.Vbytes.Length; i++)
                     {
-                        fsNew.WriteByte(_config._yuv.Vbytes[i]);
+                        fsNew.WriteByte(_config._filters._yuv.Vbytes[i]);
                     }
                 }
             }
-            else if (_config.value is 2)
+            else if (_config._filters._yuv.Dimensions is 2)
             {
 
                 // Write all component byte arrays to a new .yuv file with 2D array implementation.
                 using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
                 {
-                    for (int i = 0; i < _config._yuv.YMedian2D.GetLength(0); i++)
+                    for (int i = 0; i < _config._filters._yuv.YMedian2D.GetLength(0); i++)
                     {
-                        for (int j = 0; j < _config._yuv.YMedian2D.GetLength(1); j++)
+                        for (int j = 0; j < _config._filters._yuv.YMedian2D.GetLength(1); j++)
                         {
-                            fsNew.WriteByte(_config._yuv.YMedian2D[i, j]);
+                            fsNew.WriteByte(_config._filters._yuv.YMedian2D[i, j]);
                         }
                     }
 
-                    for (int i = 0; i < _config._yuv.Uplane.GetLength(0); i++)
+                    for (int i = 0; i < _config._filters._yuv.Uplane.GetLength(0); i++)
                     {
-                        for (int j = 0; j < _config._yuv.Uplane.GetLength(1); j++)
+                        for (int j = 0; j < _config._filters._yuv.Uplane.GetLength(1); j++)
                         {
-                            fsNew.WriteByte(_config._yuv.Uplane[i, j]);
+                            fsNew.WriteByte(_config._filters._yuv.Uplane[i, j]);
                         }
                     }
 
-                    for (int i = 0; i < _config._yuv.Vplane.GetLength(0); i++)
+                    for (int i = 0; i < _config._filters._yuv.Vplane.GetLength(0); i++)
                     {
-                        for (int j = 0; j < _config._yuv.Vplane.GetLength(1); j++)
+                        for (int j = 0; j < _config._filters._yuv.Vplane.GetLength(1); j++)
                         {
-                            fsNew.WriteByte(_config._yuv.Vplane[i, j]);
+                            fsNew.WriteByte(_config._filters._yuv.Vplane[i, j]);
                         }
                     }
                 }
