@@ -15,24 +15,36 @@ namespace SpatialFiltering
             ConfigStartup(args);
 
 
-            AssemblyInfo();
+            GetAssemblyInfo();
 
 
-            YuvModel yuv = new();
+            var yuv = new YuvModel();
+            var helpers = new Helpers(yuv);
+            Filters filters;
+            ConfigurationMethods config;
+            CustomController controller;
 
 
             while (true)
             {
 
-                var config = new ConfigurationMethods(Console.ReadLine, Console.Write, yuv);
-                var controller = new CustomController(Console.ReadLine, Console.Write, config);
+                if (keepAlive is "no")
+                {
+                    yuv = new YuvModel();
+                    helpers = new Helpers(yuv);
+                }
+
+                filters = new Filters(yuv, helpers);
+                config = new ConfigurationMethods(Console.ReadLine, Console.Write, filters, helpers);
+                controller = new CustomController(Console.ReadLine, Console.Write, config);
 
 
-                if (!controller.filters.TryGetValue(args[1], out Action filter))
+                if (!filters.filter.TryGetValue(args[1], out Action filter))
                 {
                     Console.WriteLine($"'{args[1]}' is not recognized as a filter.\n");
                     Help();
-                    Environment.Exit(-1);
+
+                    return;
                 }
 
 
@@ -41,21 +53,12 @@ namespace SpatialFiltering
                           .Out();
 
 
-                GetAction();
+                GetNextAction();
 
             }
 
         }
 
-
-        private static void AssemblyInfo()
-        {
-            Console.Clear();
-
-            Console.Write($"{Assembly.GetAssembly(typeof(Program)).GetName().Name} ");
-            Console.Write($"[Version {Assembly.GetAssembly(typeof(Program)).GetName().Version}]");
-            Console.WriteLine("\n(c) 2021 Alex Varypatis. All rights reserved.\n");
-        }
 
 
         private static void ConfigStartup(string[] args)
@@ -86,22 +89,34 @@ namespace SpatialFiltering
         }
 
 
-        private static void GetAction()
+        private static void GetAssemblyInfo()
+        {
+            Console.Clear();
+
+            Console.Write($"{Assembly.GetAssembly(typeof(Program)).GetName().Name} ");
+            Console.Write($"[Version {Assembly.GetAssembly(typeof(Program)).GetName().Version}]");
+            Console.WriteLine("\n(c) 2021 Alex Varypatis. All rights reserved.\n");
+        }
+
+
+        private static void GetNextAction()
         {
 
-            Console.Write("\n\n\nPress any key if you wish to continue...Type 'exit' for exiting application.\n> ");
+            Console.Write("\n\n\n  Press any key if you wish to continue...Type 'exit' for exiting application.\n> ");
             
             if (Console.ReadLine().ToLower() is "exit")
                 Environment.Exit(0);
+            
 
-
-            Console.Write("\n\nContinue with the same instance of the yuv model?\n> ");
+            Console.Write("\n\n  Continue with the same file resolution?\n> ");
 
             if (Console.ReadLine() is "yes")
                 keepAlive = "yes";
-
-
-            Console.Clear();
+            else
+            {
+                Console.Clear();
+                GetAssemblyInfo();
+            }
         }
 
 
