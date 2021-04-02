@@ -1,13 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace SpatialFiltering
 {
     public class YuvModel
     {
+
+        public int YWidth { get; set; }
+        public int YHeight { get; set; }
+        public int UWidth { get; set; }
+        public int UHeight { get; set; }
+        public int VWidth { get; set; }
+        public int VHeight { get; set; }
+
+
         /// <summary>
         /// Total bytes of Y component.
         /// </summary>
@@ -50,38 +54,78 @@ namespace SpatialFiltering
         public byte[,] YMedian2D;
 
 
-        public int YWidth { get; set; }
-        public int YHeight { get; set; }
-        public int UWidth { get; set; }
-        public int UHeight { get; set; }
-        public int VWidth { get; set; }
-        public int VHeight { get; set; }
-
-
         /// <summary>
         /// Y component full resolution (width * height)
         /// </summary>
-        public int YResolution
-        {
-            get { return YWidth * YHeight; }
-        }
+        public int YResolution { get { return YWidth * YHeight; } }
 
 
         /// <summary>
         /// U component full resolution (width * height)
         /// </summary>
-        public int UResolution
-        {
-            get { return UWidth * UHeight; }
-        }
+        public int UResolution { get { return UWidth * UHeight; } }
 
 
         /// <summary>
         /// V component full resolution (width * height)
         /// </summary>
-        public int VResolution
+        public int VResolution { get { return VWidth * VHeight; } }
+
+
+        
+        private string _systemMessage = "";
+        private int _mask;
+        private int _dimensions;
+
+
+        /// <summary>
+        /// Display corresponding error message for a property, if any.
+        /// </summary>
+        public string SystemMessage
         {
-            get { return VWidth * VHeight; }
+            get 
+            {
+                return _systemMessage;
+            }
+            set 
+            {
+                _systemMessage = value;  
+            }
+        }
+
+
+
+        public int Mask
+        {
+            get { return _mask; }
+            set
+            {
+                if (value is not 1 && (value % 2 is 1))
+                    _mask = value;
+                else
+                {
+                    _mask = 3;
+                    _systemMessage = $"  [SYSTEM] The mask size was successfully restored using the default value\n";
+                }
+                    
+            }
+        }
+
+
+
+        public int Dimensions
+        {
+            get { return _dimensions; }
+            set
+            {
+                if (value is 1 || value is 2)
+                    _dimensions = value;
+                else
+                {
+                    _dimensions = 2;
+                    _systemMessage = $"  [SYSTEM] The dimension value was successfully restored using default\n";
+                }
+            }
         }
 
 
