@@ -12,12 +12,12 @@ namespace SpatialFiltering
 
         private readonly Func<string> _inputProvider;
         private readonly Action<string> _outputProvider;
-        public readonly Filters _filters;
+        public readonly Filter _filters;
         private readonly Helpers _helper;
         private string _outfilepath = "";
 
 
-        public ConfigurationMethods(Func<string> inputProvider, Action<string> outputProvider, Filters filters, Helpers helper)
+        public ConfigurationMethods(Func<string> inputProvider, Action<string> outputProvider, Filter filters, Helpers helper)
         {
             _inputProvider = inputProvider;
             _outputProvider = outputProvider;
@@ -219,7 +219,7 @@ namespace SpatialFiltering
            
             _outputProvider("\n\n  Select array implementation method between 1 and 2 dimensions\n  > ");
 
-            result = _inputProvider();
+            result = _inputProvider() ?? string.Empty;
 
             _helper.UserExit(result);
 
