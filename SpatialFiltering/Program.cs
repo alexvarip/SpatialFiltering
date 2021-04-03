@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace SpatialFiltering
@@ -7,49 +8,45 @@ namespace SpatialFiltering
     class Program
     {
         public static string filepath = "";
-        public static string keepAlive = "";
+        public static string keepInstancesAlive = "";
 
         static void Main(string[] args)
         {
-
-            ConfigStartup(args);
-
-
-            GetAssemblyInfo();
-
-
             var yuv = new YuvModel();
             var helpers = new Helpers(yuv);
-            Filters filters;
+            var filter = new Filter(yuv, helpers);
             ConfigurationMethods config;
             CustomController controller;
+
+
+            ConfigStartup(args, filter);
+            GetAssemblyInfo();
 
 
             while (true)
             {
 
-                if (keepAlive is "no")
-                {
-                    yuv = new YuvModel();
-                    helpers = new Helpers(yuv);
-                }
+                if (keepInstancesAlive is "no")
+                    filter = new Filter(new YuvModel(), new Helpers(yuv));
 
-                filters = new Filters(yuv, helpers);
-                config = new ConfigurationMethods(Console.ReadLine, Console.Write, filters, helpers);
+
+                config = new ConfigurationMethods(Console.ReadLine, Console.Write, filter, helpers);
                 controller = new CustomController(Console.ReadLine, Console.Write, config);
 
 
-                if (!filters.filter.TryGetValue(args[1], out Action filter))
+                var value = filter.GetValue(args[1]);
+
+                if (value is null)
                 {
                     Console.WriteLine($"'{args[1]}' is not recognized as a filter.\n");
-                    Help();
+                    Help(filter);
 
                     return;
                 }
 
 
                 controller.Build()
-                          .ApplyFilter(filter)
+                          .ApplyFilter(value)
                           .Out();
 
 
@@ -60,12 +57,11 @@ namespace SpatialFiltering
         }
 
 
-
-        private static void ConfigStartup(string[] args)
+        private static void ConfigStartup(string[] args, Filter filter)
         {
             if (args[0] is "-h" || args[0] is "--help")
             {
-                Help();
+                Help(filter);
                 Environment.Exit(0);
             }
             else if (args.Length is 4 && (args[0] is "-f" ||  args[0] is "--filter")
@@ -83,7 +79,7 @@ namespace SpatialFiltering
             }
             else
             {
-                Help();
+                Help(filter);
                 Environment.Exit(0);
             }
         }
@@ -111,7 +107,7 @@ namespace SpatialFiltering
             Console.Write("\n\n  Continue with the same file resolution?\n> ");
 
             if (Console.ReadLine() is "yes")
-                keepAlive = "yes";
+                keepInstancesAlive = "yes";
             else
             {
                 Console.Clear();
@@ -120,7 +116,7 @@ namespace SpatialFiltering
         }
 
 
-        private static void Help()
+        private static void Help(Filter filter)
         {
             Console.WriteLine($"\nUsage: executable [options[-f]] [filter] [options[-i]] [path-to-file]");
             Console.WriteLine("\nOptions:");
@@ -128,7 +124,7 @@ namespace SpatialFiltering
             Console.WriteLine("  -f | --filter     Select a filter.");
             Console.WriteLine("  -i | --import     Import a file.");
             Console.WriteLine("\nfilter:");
-            Console.WriteLine("  Median\n  Average");
+            Console.WriteLine($"  {string.Join("\n  ", filter.GetAvailableFilters())}");
             Console.WriteLine("\npath-to-file:");
             Console.WriteLine("  The path to a .yuv file to import.");
         }
