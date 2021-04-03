@@ -35,9 +35,9 @@ namespace SpatialFiltering
         public CustomController Build()
         {
 
-            if (Program.keepAlive is "yes")
+            if (Program.keepInstancesAlive is "yes")
             {
-                Program.keepAlive = "no";
+                Program.keepInstancesAlive = "no";
 
                 _config.UserAction();
 
