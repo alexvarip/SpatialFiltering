@@ -9,6 +9,7 @@ namespace SpatialFiltering
         public static string filepath = "";
         public static string keepInstancesAlive = "";
         public static string selectedFilter = "";
+        private static Action value;
 
         static void Main(string[] args)
         {
@@ -20,17 +21,6 @@ namespace SpatialFiltering
 
 
             ConfigStartup(args, filter);
-
-
-            var value = filter.GetValue(args[1]);
-
-            if (value is null)
-            {
-                Console.WriteLine($"'{args[1]}' is not recognized as a filter.\n");
-                Help(filter);
-
-                return;
-            }
 
 
             while (true)
@@ -69,10 +59,13 @@ namespace SpatialFiltering
 
         private static void ConfigStartup(string[] args, Filter filter)
         {
-            var input = args[3];
-            var file = Path.GetFileName(input) ?? string.Empty;
 
-            if (args[0] is "-h" || args[0] is "--help")
+            if (args.Length is 0)
+            {
+                Help(filter);
+                Environment.Exit(0);
+            }
+            else if (args[0] is "-h" || args[0] is "--help")
             {
                 Help(filter);
                 Environment.Exit(0);
@@ -80,6 +73,8 @@ namespace SpatialFiltering
             else if (args.Length is 4 && (args[0] is "-f" ||  args[0] is "--filter")
                                  && (args[2] is "-i" ||  args[2] is "--import"))
             {
+                var input = args[3];
+                var file = Path.GetFileName(input) ?? string.Empty;
 
                 if (file is not "" && file.EndsWith(".yuv"))
                 {
@@ -93,7 +88,7 @@ namespace SpatialFiltering
                 }
                 else
                 {
-                    Console.WriteLine($"'{file}' is not recognized as an known file type.\n");
+                    Console.WriteLine($"'{file}' is not recognized as a known internal file type.\n");
                     Console.WriteLine("A file extension of type '.yuv' is expected.\n");
                     Environment.Exit(0);
                 }                
@@ -103,6 +98,19 @@ namespace SpatialFiltering
                 Help(filter);
                 Environment.Exit(0);
             }
+
+
+            // Get correct action for the given key
+            value = filter.GetValue(args[1]);
+
+            if (value is null)
+            {
+                Console.WriteLine($"'{args[1]}' is not recognized as a filter.\n");
+                Help(filter);
+
+                Environment.Exit(0);
+            }
+
         }
 
 
@@ -133,7 +141,7 @@ namespace SpatialFiltering
             }
             else
             {
-                Console.WriteLine($"'{file}' is not recognized as an known file type.\n");
+                Console.WriteLine($"'{file}' is not recognized as a known internal file type.\n");
                 Console.WriteLine("A file extension of type '.yuv' is expected.\n");
                 Environment.Exit(0);
             }           
