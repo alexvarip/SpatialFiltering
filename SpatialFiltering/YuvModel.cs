@@ -1,7 +1,8 @@
 ﻿
+
 namespace SpatialFiltering
 {
-    public class YuvModel
+    public class YuvModel 
     {
 
         public int YWidth { get; set; }
@@ -45,13 +46,13 @@ namespace SpatialFiltering
         /// <summary>
         /// One dimensional byte array filled with median values.
         /// </summary>
-        public byte[] YMedian;
+        public byte[] YFiltered;
 
 
         /// <summary>
         /// Two dimensional array filled with the median values of a converted from one dimensional to two dimensional byte array.
         /// </summary>
-        public byte[,] YMedian2D;
+        public byte[,] YFiltered2D;
 
 
         /// <summary>
@@ -79,7 +80,7 @@ namespace SpatialFiltering
 
 
         /// <summary>
-        /// Display corresponding error message for a property, if any.
+        /// Display the corresponding error message for a property, if any.
         /// </summary>
         public string SystemMessage
         {
@@ -105,7 +106,7 @@ namespace SpatialFiltering
                 else
                 {
                     _mask = 3;
-                    _systemMessage = $"  [SYSTEM] The mask size was successfully restored using the default value\n";
+                    _systemMessage = $"\n  [SYSTEM] The mask size was successfully restored using the default value [{_mask}]\n";
                 }
                     
             }
@@ -123,13 +124,12 @@ namespace SpatialFiltering
                 else
                 {
                     _dimensions = 2;
-                    _systemMessage = $"  [SYSTEM] The dimension value was successfully restored using default\n";
+                    _systemMessage = $"\n  [SYSTEM] The dimension value was successfully restored using default [{_dimensions}]\n";
                 }
             }
         }
 
-
-
+       
     }
 }
 
