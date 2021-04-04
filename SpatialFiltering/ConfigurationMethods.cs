@@ -9,17 +9,17 @@ namespace SpatialFiltering
 
         private readonly Func<string> _inputProvider;
         private readonly Action<string> _outputProvider;
-        public readonly Filter _filters;
-        private readonly Helpers _helper;
+        private readonly YuvModel _yuv;
+        private readonly Helpers _helpers;
         private string _outfilepath = "";
 
 
-        public ConfigurationMethods(Func<string> inputProvider, Action<string> outputProvider, Filter filters, Helpers helper)
+        public ConfigurationMethods(Func<string> inputProvider, Action<string> outputProvider, YuvModel yuv, Helpers helpers)
         {
             _inputProvider = inputProvider;
             _outputProvider = outputProvider;
-            _filters = filters;
-            _helper = helper;
+            _yuv = yuv;
+            _helpers = helpers;
         }
 
 
@@ -46,56 +46,56 @@ namespace SpatialFiltering
             
             var result = _inputProvider();
             if (int.TryParse(result, out int value))
-                _filters._yuv.YWidth = value;
+                _yuv.YWidth = value;
 
-             _helper.UserExit(result);
+             _helpers.UserExit(result);
 
             _outputProvider("  height: ");
             result = _inputProvider();
             if (int.TryParse(result, out value))
-                _filters._yuv.YHeight = value;
+                _yuv.YHeight = value;
 
-            _helper.UserExit(result);
+            _helpers.UserExit(result);
 
             _outputProvider("\n  <U component resolution>");
             _outputProvider("\n  width: ");
             result = _inputProvider();
             if (int.TryParse(result, out value))
-                _filters._yuv.UWidth = value;
+                _yuv.UWidth = value;
 
-            _helper.UserExit(result);
+            _helpers.UserExit(result);
 
             _outputProvider("  height: ");
             result = _inputProvider();
             if (int.TryParse(result, out value))
-                _filters._yuv.UHeight = value;
+                _yuv.UHeight = value;
 
-            _helper.UserExit(result);
+            _helpers.UserExit(result);
 
             _outputProvider("\n  <V component resolution>");
             _outputProvider("\n  width: ");
             result = _inputProvider();
             if (int.TryParse(result, out value))
-                _filters._yuv.VWidth = value;
+                _yuv.VWidth = value;
 
-            _helper.UserExit(result);
+            _helpers.UserExit(result);
 
             _outputProvider("  height: ");
             result = _inputProvider();
             if (int.TryParse(result, out value))
-                _filters._yuv.VHeight = value;
+                _yuv.VHeight = value;
 
-            _helper.UserExit(result);
+            _helpers.UserExit(result);
 
-            _filters._yuv.YTotalBytes = _filters._yuv.YResolution;
-            _filters._yuv.UTotalBytes = _filters._yuv.UResolution;
-            _filters._yuv.VTotalBytes = _filters._yuv.VResolution;
+            _yuv.YTotalBytes = _yuv.YResolution;
+            _yuv.UTotalBytes = _yuv.UResolution;
+            _yuv.VTotalBytes = _yuv.VResolution;
 
 
 
-            Array.Resize(ref _filters._yuv.Ybytes, _filters._yuv.YResolution);
-            Array.Resize(ref _filters._yuv.Ubytes, _filters._yuv.UResolution);
-            Array.Resize(ref _filters._yuv.Vbytes, _filters._yuv.VResolution);
+            Array.Resize(ref _yuv.Ybytes, _yuv.YResolution);
+            Array.Resize(ref _yuv.Ubytes, _yuv.UResolution);
+            Array.Resize(ref _yuv.Vbytes, _yuv.VResolution);
 
 
             FileProperties();
@@ -111,20 +111,20 @@ namespace SpatialFiltering
             _outputProvider("\n └──────────────────────┘ ");
             _outputProvider("\n");
             _outputProvider($"\n  Name: {Path.GetFileName(Program.filepath)}");
-            _outputProvider($"\n  Resolution: {_filters._yuv.YWidth} x {_filters._yuv.YHeight}");
-            _outputProvider($"\n  Width: {_filters._yuv.YWidth} pixels");
-            _outputProvider($"\n  Height: {_filters._yuv.YHeight} pixels");
+            _outputProvider($"\n  Resolution: {_yuv.YWidth} x {_yuv.YHeight}");
+            _outputProvider($"\n  Width: {_yuv.YWidth} pixels");
+            _outputProvider($"\n  Height: {_yuv.YHeight} pixels");
             _outputProvider($"\n  Item Type: {Path.GetExtension(Program.filepath).ToUpper()} File");
             _outputProvider($"\n  Folder Path: {Path.GetDirectoryName(Program.filepath)}");
             _outputProvider($"\n  Date Created: {File.GetCreationTime(Program.filepath)}");
             _outputProvider($"\n  Date Modified: {File.GetLastAccessTime(Program.filepath)}");
-            _outputProvider($"\n  Size: {_filters._yuv.YTotalBytes} KB");
+            _outputProvider($"\n  Size: {_yuv.YTotalBytes} KB");
             _outputProvider($"\n  Owner: {Environment.UserName}");
             _outputProvider($"\n  Computer: {Environment.MachineName}");
         }
 
 
-        public Task ReadYuvComponents()
+        public Task ReadFile()
         {
             try
             {
@@ -134,53 +134,53 @@ namespace SpatialFiltering
 
                     // Write y component into a byte array.
                     int numBytesRead = 0;
-                    while (_filters._yuv.YTotalBytes > 0)
+                    while (_yuv.YTotalBytes > 0)
                     {
                         // Read may return anything from 0 to numBytesToRead.
-                        int n = fsSource.Read(_filters._yuv.Ybytes, numBytesRead, _filters._yuv.YTotalBytes);
+                        int n = fsSource.Read(_yuv.Ybytes, numBytesRead, _yuv.YTotalBytes);
 
                         // Break when the end of the file is reached.
                         if (n == 0)
                             break;
 
                         numBytesRead += n;
-                        _filters._yuv.YTotalBytes -= n;
+                        _yuv.YTotalBytes -= n;
                     }
-                    _filters._yuv.YTotalBytes = _filters._yuv.Ybytes.Length;
+                    _yuv.YTotalBytes = _yuv.Ybytes.Length;
 
 
                     // Write u component into a byte array.
                     numBytesRead = 0;
-                    while (_filters._yuv.UTotalBytes > 0)
+                    while (_yuv.UTotalBytes > 0)
                     {
                         // Read may return anything from 0 to numBytesToRead.
-                        int n = fsSource.Read(_filters._yuv.Ubytes, numBytesRead, _filters._yuv.UTotalBytes);
+                        int n = fsSource.Read(_yuv.Ubytes, numBytesRead, _yuv.UTotalBytes);
 
                         // Break when the end of the file is reached.
                         if (n == 0)
                             break;
 
                         numBytesRead += n;
-                        _filters._yuv.UTotalBytes -= n;
+                        _yuv.UTotalBytes -= n;
                     }
-                    _filters._yuv.UTotalBytes = _filters._yuv.Ubytes.Length;
+                    _yuv.UTotalBytes = _yuv.Ubytes.Length;
 
 
                     // Write v component into a byte array.
                     numBytesRead = 0;
-                    while (_filters._yuv.VTotalBytes > 0)
+                    while (_yuv.VTotalBytes > 0)
                     {
                         // Read may return anything from 0 to numBytesToRead.
-                        int n = fsSource.Read(_filters._yuv.Vbytes, numBytesRead, _filters._yuv.VTotalBytes);
+                        int n = fsSource.Read(_yuv.Vbytes, numBytesRead, _yuv.VTotalBytes);
 
                         // Break when the end of the file is reached.
                         if (n == 0)
                             break;
 
                         numBytesRead += n;
-                        _filters._yuv.VTotalBytes -= n;
+                        _yuv.VTotalBytes -= n;
                     }
-                    _filters._yuv.VTotalBytes = _filters._yuv.Vbytes.Length;
+                    _yuv.VTotalBytes = _yuv.Vbytes.Length;
 
 
                     return Task.CompletedTask;
@@ -202,8 +202,6 @@ namespace SpatialFiltering
         public void UserAction()
         {
 
-            // ▒▓░ 
-
             _outputProvider("\n\n");
             _outputProvider("\n ┌───────────────────────────────┐ ");
             _outputProvider("\n ▒   YUV Implementation Method   ▒ ");
@@ -212,34 +210,18 @@ namespace SpatialFiltering
 
 
             string result = "";
-           
+
             _outputProvider("\n\n  Select array implementation method between 1 and 2 dimensions\n  > ");
 
             result = _inputProvider() ?? string.Empty;
 
-            _helper.UserExit(result);
-
-
-            // Get correct dimension value
+            _helpers.UserExit(result);
             _ = int.TryParse(result, out int value);
-
-            _filters._yuv.Dimensions = value;
-            if (_filters._yuv.SystemMessage is not "")
-            {
-                var pos = Console.GetCursorPosition();
-                Console.SetCursorPosition(pos.Left, pos.Top - 1);
-
-                _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
-                Console.SetCursorPosition(pos.Left + 2, pos.Top - 1);
-
-                _outputProvider($"> {_filters._yuv.Dimensions}\n");
-                _outputProvider(_filters._yuv.SystemMessage);
-            }
+            _yuv.Dimensions = value;
 
 
-            _filters._yuv.SystemMessage = "";
-
-
+            DisplaySystemMessage("dimension");
+           
 
             _outputProvider("\n\n  Please select window/mask size  [Usage: [integer [default = 3]] \n  [Press Enter to continue]");
             Console.CursorVisible = false;
@@ -250,49 +232,129 @@ namespace SpatialFiltering
             Console.CursorVisible = true;
 
 
-            result = _inputProvider();
+            result = _inputProvider() ?? string.Empty;
 
-            _helper.UserExit(result);
-
-
-            // Get correct mask value
+            _helpers.UserExit(result);
             _ = int.TryParse(result, out value);
+            _yuv.Mask = value;
 
-            _filters._yuv.Mask = value;
-            if (_filters._yuv.SystemMessage is not "")
-            {
-                var pos = Console.GetCursorPosition();
-                Console.SetCursorPosition(pos.Left, pos.Top - 1);
+            DisplaySystemMessage("mask");
 
-                _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
-                _outputProvider($"  Your preference: {_filters._yuv.Mask}\n");
-                _outputProvider(_filters._yuv.SystemMessage);
-            }
-
-
-            _filters._yuv.SystemMessage = "";
         }
 
 
-        public string CreateOutPath()
+        private void DisplaySystemMessage(string value)
+        {
+            if (_yuv.SystemMessage is not "")
+            {
+                var (Left, Top) = Console.GetCursorPosition();
+                
+                Console.SetCursorPosition(Left, Top - 1);
+                _outputProvider("\r" + new string(' ', Console.WindowWidth) + "\r");
+
+                switch (value)
+                {
+                    case "dimension":
+                                    _outputProvider($"  > {_yuv.Dimensions}\n{_yuv.SystemMessage}");
+                                    break;
+                    case "mask":
+                                _outputProvider($"  Your preference: {_yuv.Mask}\n{_yuv.SystemMessage}");
+                                break;
+                    default:
+                        break;
+                }
+
+            }
+
+            _yuv.SystemMessage = "";
+
+        }
+
+
+        public void WriteToFile()
+        {
+           
+            try
+            {
+                if (_yuv.Dimensions is 1)
+                {
+
+                    // Write all component byte arrays to a new .yuv file with 1D array implementation.
+                    using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
+                    {
+                        for (int i = 0; i < _yuv.YFiltered.Length; i++)
+                        {
+                            fsNew.WriteByte(_yuv.YFiltered[i]);
+                        }
+
+                        for (int i = 0; i < _yuv.Ubytes.Length; i++)
+                        {
+                            fsNew.WriteByte(_yuv.Ubytes[i]);
+                        }
+
+                        for (int i = 0; i < _yuv.Vbytes.Length; i++)
+                        {
+                            fsNew.WriteByte(_yuv.Vbytes[i]);
+                        }
+                    }
+                }
+                else if (_yuv.Dimensions is 2)
+                {
+
+                    // Write all component byte arrays to a new .yuv file with 2D array implementation.
+                    using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
+                    {
+                        for (int i = 0; i < _yuv.YFiltered2D.GetLength(0); i++)
+                        {
+                            for (int j = 0; j < _yuv.YFiltered2D.GetLength(1); j++)
+                            {
+                                fsNew.WriteByte(_yuv.YFiltered2D[i, j]);
+                            }
+                        }
+
+                        for (int i = 0; i < _yuv.Uplane.GetLength(0); i++)
+                        {
+                            for (int j = 0; j < _yuv.Uplane.GetLength(1); j++)
+                            {
+                                fsNew.WriteByte(_yuv.Uplane[i, j]);
+                            }
+                        }
+
+                        for (int i = 0; i < _yuv.Vplane.GetLength(0); i++)
+                        {
+                            for (int j = 0; j < _yuv.Vplane.GetLength(1); j++)
+                            {
+                                fsNew.WriteByte(_yuv.Vplane[i, j]);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _outputProvider(ex.ToString());
+            }
+
+        }
+
+
+        public string CreateFilePath()
         {
             string path = $"{Environment.CurrentDirectory}/generated";
-            int mask = _filters._yuv.Mask;
-            int dimensions = _filters._yuv.Dimensions;
+            int mask = _yuv.Mask;
+            int dimensions = _yuv.Dimensions;
 
 
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory($"{Environment.CurrentDirectory}/generated");
-                _outfilepath = $"{path}/BlowingBubbles_416x240_filtered_{mask}x{mask}_{dimensions}D.yuv";
+                _outfilepath = $"{path}/{Path.GetFileNameWithoutExtension(Program.filepath)}_filtered_{mask}x{mask}_{Program.selectedFilter}_{dimensions}D.yuv";
             }
             else
-                _outfilepath = $"{Environment.CurrentDirectory}/generated/BlowingBubbles_416x240_filtered_{mask}x{mask}_{dimensions}D.yuv";
+                _outfilepath = $"{Environment.CurrentDirectory}/generated/{Path.GetFileNameWithoutExtension(Program.filepath)}_filtered_{mask}x{mask}_{Program.selectedFilter}_{dimensions}D.yuv";
 
             return _outfilepath;
         }
-
-
 
 
     }
