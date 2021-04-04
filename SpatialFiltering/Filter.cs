@@ -366,7 +366,7 @@ namespace SpatialFiltering
             for (i = 0; i < _yuv.Mask; i++)
                 temp += input[index - ((_yuv.Mask - 1) / 2) + i];
 
-            temp /= i;
+            temp /= _yuv.Mask;
 
             _yuv.YFiltered[index - ((_yuv.Mask - 1) / 2)] = (byte)temp;
         }
