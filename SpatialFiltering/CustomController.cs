@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 namespace SpatialFiltering
 {
@@ -33,18 +32,14 @@ namespace SpatialFiltering
 
             if (Program.keepInstancesAlive is "yes")
             {
-                Program.keepInstancesAlive = "no";
-
                 _config.UserAction();
-
 
                 return this;
             }
 
-
             _config.GetInformation();
 
-            if(_config.ReadYuvComponents().IsCompletedSuccessfully)
+            if(_config.ReadFile().IsCompletedSuccessfully)
                 _config.UserAction();
             
             
@@ -54,7 +49,7 @@ namespace SpatialFiltering
 
         
         /// <summary>
-        /// Applies the selected from the user Filter with the specified window/mask size with either one or two dimensional implementations.
+        /// Applies the selected from the user spatial Filter with the specified window/mask size with either one or two dimensional implementations.
         /// </summary>
         public CustomController ApplyFilter(Action action)
         {
@@ -71,62 +66,9 @@ namespace SpatialFiltering
         public CustomController Out()
         {
 
-            _outfilepath = _config.CreateOutPath();
+            _outfilepath = _config.CreateFilePath();
 
-
-            if (_config._filters._yuv.Dimensions is 1)
-            {
-                // Write all component byte arrays to a new .yuv file with 1D array implementation.
-                using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
-                {
-                    for (int i = 0; i < _config._filters._yuv.YMedian.Length; i++)
-                    {
-                        fsNew.WriteByte(_config._filters._yuv.YMedian[i]);
-                    }
-
-                    for (int i = 0; i < _config._filters._yuv.Ubytes.Length; i++)
-                    {
-                        fsNew.WriteByte(_config._filters._yuv.Ubytes[i]);
-                    }
-
-                    for (int i = 0; i < _config._filters._yuv.Vbytes.Length; i++)
-                    {
-                        fsNew.WriteByte(_config._filters._yuv.Vbytes[i]);
-                    }
-                }
-            }
-            else if (_config._filters._yuv.Dimensions is 2)
-            {
-
-                // Write all component byte arrays to a new .yuv file with 2D array implementation.
-                using (FileStream fsNew = new FileStream(_outfilepath, FileMode.Create, FileAccess.Write))
-                {
-                    for (int i = 0; i < _config._filters._yuv.YMedian2D.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < _config._filters._yuv.YMedian2D.GetLength(1); j++)
-                        {
-                            fsNew.WriteByte(_config._filters._yuv.YMedian2D[i, j]);
-                        }
-                    }
-
-                    for (int i = 0; i < _config._filters._yuv.Uplane.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < _config._filters._yuv.Uplane.GetLength(1); j++)
-                        {
-                            fsNew.WriteByte(_config._filters._yuv.Uplane[i, j]);
-                        }
-                    }
-
-                    for (int i = 0; i < _config._filters._yuv.Vplane.GetLength(0); i++)
-                    {
-                        for (int j = 0; j < _config._filters._yuv.Vplane.GetLength(1); j++)
-                        {
-                            fsNew.WriteByte(_config._filters._yuv.Vplane[i, j]);
-                        }
-                    }
-                }
-            }
-
+            _config.WriteToFile();
 
             _outputProvider($"\n\n  Your file is ready to use at the following path:\n  {_outfilepath}");
 
