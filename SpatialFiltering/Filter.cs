@@ -27,8 +27,10 @@ namespace SpatialFiltering
                 { "Average", () => { if (ApplyAverageFilter().IsCompletedSuccessfully)
                                         Console.Write("Task successfully completed.\n"); }
                 },
-                
-                { "Laplace", () => { } }
+
+                { "Laplace", () => { if (ApplyLaplacianFilter().IsCompletedSuccessfully)
+                                        Console.Write("Task successfully completed.\n"); }
+                } 
             };
 
         }
@@ -324,6 +326,99 @@ namespace SpatialFiltering
 
 
 
+        public Task ApplyLaplacianFilter()
+        {
+
+            /* Laplace Equation:  Δ^2(f) =  δ^2(f)       δ^2(f)    =  [f(x+1,y) + f(x-1,y) + f(x,y+1) + f(x,y-1) - 4f(x,y)] =
+                                           --------  +  --------  
+                                           δ^2(f(x))    δ^2(f(y))
+
+                = { 0   1   0
+                    1  -4   1
+                    0   1   0 }
+
+
+                 δ^2(f)/δ^2(f(x)) = f(x+1,y) + f(x-1,y) - 2f(x,y)
+                 δ^2(f)/δ^2(f(y)) = f(x,y+1) + f(x,y-1) - 2f(x,y)
+            */
+
+
+
+
+            // First apply a noise reduction filter like median to smooth the image (instead of Gaussian Blur),
+            // cause of the high sensitivity of laplacian, to make it more effective.
+
+            bool q = false;
+            bool w = false;
+
+
+            _helpers.InformUser();
+
+
+            Parallel.Invoke(
+                () => _yuv.Yplane = _helpers.ConvertTo2DExtendedArray(_yuv.Ybytes, _yuv.YHeight, _yuv.YWidth),
+                () => _yuv.Uplane = _helpers.ConvertTo2DArray(_yuv.Ubytes, _yuv.UHeight, _yuv.UWidth),
+                () => _yuv.Vplane = _helpers.ConvertTo2DArray(_yuv.Vbytes, _yuv.VHeight, _yuv.VWidth));
+
+
+            _yuv.YFiltered2D = new byte[_yuv.YHeight, _yuv.YWidth];
+
+
+            Parallel.Invoke(
+                            delegate ()
+                            {
+
+                                for (int i = ((_yuv.Mask - 1) / 2); i < _yuv.Yplane.GetLength(0) - ((_yuv.Mask - 1) / 2); i++)
+                                {
+                                    for (int j = ((_yuv.Mask - 1) / 2); j < _yuv.Yplane.GetLength(1) - ((_yuv.Mask - 1) / 2); j++)
+                                    {
+                                        FindLaplacian(i, j);
+                                    }
+                                }
+
+                                q = true;
+
+                            }
+
+                            //delegate ()
+                            //{
+                            //    while (true)
+                            //    {
+                            //        for (int dots = 0; dots < 3; ++dots)
+                            //        {
+                            //            Console.Write('.');
+                            //            Thread.Sleep(500);
+                            //            if (dots == 2)
+                            //            {
+                            //                if (q == true)
+                            //                {
+                            //                    w = true;
+                            //                    break;
+                            //                }
+
+                            //                //Console.SetCursorPosition(Left, Top);
+                            //                Console.Write(new string(' ', 3));
+                            //                //Console.SetCursorPosition(Left, Top);
+
+                            //                dots = -1;
+                            //                Thread.Sleep(500);
+                            //            }
+                            //        }
+
+                            //        if (w == true)
+                            //            break;
+                            //    }
+                            //}
+            );
+
+
+
+
+            return Task.CompletedTask;
+        }
+
+
+
         private void FindMedian(byte[] input, int index)
         {
             List<byte> temp = new();
@@ -379,18 +474,48 @@ namespace SpatialFiltering
 
             // Find the correct block on given index and mask
             for (int i = i_index - ((_yuv.Mask - 1) / 2); i <= i_index + ((_yuv.Mask - 1) / 2); i++)
-            {
                 for (int j = j_index - ((_yuv.Mask - 1) / 2); j <= j_index + ((_yuv.Mask - 1) / 2); j++)
-                {
                     temp += _yuv.Yplane[i, j];
-                }
-            }
+
 
             temp /= Math.Pow(_yuv.Mask, 2);
 
             _yuv.YFiltered2D[i_index - ((_yuv.Mask - 1) / 2), j_index - ((_yuv.Mask - 1) / 2)] = (byte)temp;
         }
 
+
+
+        private void FindLaplacian(int i_index, int j_index)
+        {
+
+            /* [  0  -1   0 ]
+               [ -1   5  -1 ]
+               [  0  -1   0 ] 
+            */
+
+            int temp = 0;
+            int w = 0, z = 0;
+            int[,] mask = new int[,] {  {  0, -1,  0, },
+                                        { -1,  4, -1, },
+                                        {  0, -1,  0, } 
+            };
+
+
+            // Find the correct block on given index and mask
+            for (int i = i_index - ((_yuv.Mask - 1) / 2); i <= i_index + ((_yuv.Mask - 1) / 2); i++)
+            {
+                for (int j = j_index - ((_yuv.Mask - 1) / 2); j <= j_index + ((_yuv.Mask - 1) / 2); j++)
+                {
+                    temp += _yuv.Yplane[i, j] * mask[w, z];
+                    z++;
+                }
+                w++;
+                z = 0;
+            }
+
+            _yuv.YFiltered2D[i_index - ((_yuv.Mask - 1) / 2), j_index - ((_yuv.Mask - 1) / 2)] = (byte)temp;
+
+        }
 
 
     }
