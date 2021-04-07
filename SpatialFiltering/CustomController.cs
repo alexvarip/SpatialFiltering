@@ -9,7 +9,7 @@ namespace SpatialFiltering
         private readonly Action<string> _outputProvider;
         private readonly ConfigurationMethods _config;
         private string _outfilepath = "";
-
+        
 
 
         /// <summary>
@@ -29,9 +29,10 @@ namespace SpatialFiltering
         /// </summary>
         public CustomController Build()
         {
-
+            
             if (Program.keepInstancesAlive is "yes")
             {
+                _config.FileProperties();
                 _config.UserAction();
 
                 return this;
