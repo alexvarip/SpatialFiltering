@@ -21,15 +21,15 @@ namespace SpatialFiltering
             _filters = new Dictionary<string, Action>()
             {
                 { "Median", () => { if (ApplyMedianFilter().IsCompletedSuccessfully)
-                                        Console.Write("Task successfully completed.\n"); }
+                                            Console.Write("Task successfully completed.\n"); }
                 },
 
                 { "Average", () => { if (ApplyAverageFilter().IsCompletedSuccessfully)
-                                        Console.Write("Task successfully completed.\n"); }
+                                            Console.Write("Task successfully completed.\n"); }
                 },
 
-                { "Laplace", () => { if (ApplyLaplacianFilter().IsCompletedSuccessfully)
-                                        Console.Write("Task successfully completed.\n"); }
+                { "Laplacian", () => { if (ApplyLaplacianFilter().IsCompletedSuccessfully)
+                                             Console.Write("Task successfully completed.\n"); }
                 } 
             };
 
@@ -60,7 +60,6 @@ namespace SpatialFiltering
             bool q = false;
             bool w = false;
 
-            var (Left, Top) = Console.GetCursorPosition();
 
             if (_yuv.Dimensions is 1)
             {
@@ -69,6 +68,7 @@ namespace SpatialFiltering
 
                 _helpers.InformUser();
 
+                var (Left, Top) = Console.GetCursorPosition();
 
                 Array.Resize(ref _yuv.YFiltered, _yuv.YResolution);
 
@@ -125,6 +125,8 @@ namespace SpatialFiltering
             {
 
                 _helpers.InformUser();
+
+                var (Left, Top) = Console.GetCursorPosition();
 
 
                 Parallel.Invoke(
@@ -204,6 +206,7 @@ namespace SpatialFiltering
 
                 _helpers.InformUser();
 
+                var (Left, Top) = Console.GetCursorPosition();
 
                 Array.Resize(ref _yuv.YFiltered, _yuv.YResolution);
 
@@ -239,9 +242,9 @@ namespace SpatialFiltering
                                                     break;
                                                 }
 
-                                                // Console.SetCursorPosition(Left, Top);
+                                                Console.SetCursorPosition(Left, Top);
                                                 Console.Write(new string(' ', 3));
-                                                //Console.SetCursorPosition(Left, Top);
+                                                Console.SetCursorPosition(Left, Top);
 
                                                 dots = -1;
                                                 Thread.Sleep(500);
@@ -261,6 +264,8 @@ namespace SpatialFiltering
             {
 
                 _helpers.InformUser();
+
+                var (Left, Top) = Console.GetCursorPosition();
 
 
                 Parallel.Invoke(
@@ -303,9 +308,9 @@ namespace SpatialFiltering
                                                     break;
                                                 }
 
-                                                //Console.SetCursorPosition(Left, Top);
+                                                Console.SetCursorPosition(Left, Top);
                                                 Console.Write(new string(' ', 3));
-                                                //Console.SetCursorPosition(Left, Top);
+                                                Console.SetCursorPosition(Left, Top);
 
                                                 dots = -1;
                                                 Thread.Sleep(500);
@@ -354,6 +359,8 @@ namespace SpatialFiltering
 
             _helpers.InformUser();
 
+            var (Left, Top) = Console.GetCursorPosition();
+
 
             Parallel.Invoke(
                 () => _yuv.Yplane = _helpers.ConvertTo2DExtendedArray(_yuv.Ybytes, _yuv.YHeight, _yuv.YWidth),
@@ -361,9 +368,11 @@ namespace SpatialFiltering
                 () => _yuv.Vplane = _helpers.ConvertTo2DArray(_yuv.Vbytes, _yuv.VHeight, _yuv.VWidth));
 
 
+            
             _yuv.YFiltered2D = new byte[_yuv.YHeight, _yuv.YWidth];
 
 
+            
             Parallel.Invoke(
                             delegate ()
                             {
@@ -378,40 +387,38 @@ namespace SpatialFiltering
 
                                 q = true;
 
+                            },
+
+                            delegate ()
+                            {
+                                while (true)
+                                {
+                                    for (int dots = 0; dots < 3; ++dots)
+                                    {
+                                        Console.Write('.');
+                                        Thread.Sleep(500);
+                                        if (dots == 2)
+                                        {
+                                            if (q == true)
+                                            {
+                                                w = true;
+                                                break;
+                                            }
+
+                                            Console.SetCursorPosition(Left, Top);
+                                            Console.Write(new string(' ', 3));
+                                            Console.SetCursorPosition(Left, Top);
+
+                                            dots = -1;
+                                            Thread.Sleep(500);
+                                        }
+                                    }
+
+                                    if (w == true)
+                                        break;
+                                }
                             }
-
-                            //delegate ()
-                            //{
-                            //    while (true)
-                            //    {
-                            //        for (int dots = 0; dots < 3; ++dots)
-                            //        {
-                            //            Console.Write('.');
-                            //            Thread.Sleep(500);
-                            //            if (dots == 2)
-                            //            {
-                            //                if (q == true)
-                            //                {
-                            //                    w = true;
-                            //                    break;
-                            //                }
-
-                            //                //Console.SetCursorPosition(Left, Top);
-                            //                Console.Write(new string(' ', 3));
-                            //                //Console.SetCursorPosition(Left, Top);
-
-                            //                dots = -1;
-                            //                Thread.Sleep(500);
-                            //            }
-                            //        }
-
-                            //        if (w == true)
-                            //            break;
-                            //    }
-                            //}
             );
-
-
 
 
             return Task.CompletedTask;
@@ -487,11 +494,6 @@ namespace SpatialFiltering
 
         private void FindLaplacian(int i_index, int j_index)
         {
-
-            /* [  0  -1   0 ]
-               [ -1   5  -1 ]
-               [  0  -1   0 ] 
-            */
 
             int temp = 0;
             int w = 0, z = 0;
