@@ -32,24 +32,15 @@ namespace SpatialFiltering
 
                 if (keepInstancesAlive is "no")
                 {
-                    UseNewFile();
+                    LoadNewFile();
 
                     GetAssemblyInfo();
-
-                    yuv = null;
-                    helpers = null;
-                   
-                    yuv = new YuvModel();
-                    helpers = new Helpers(yuv);
-                    filter = new Filter(yuv, helpers);
-                    config = new ConfigurationMethods(Console.ReadLine, Console.Write, yuv, helpers);
-                    controller = new CustomController(Console.ReadLine, Console.Write, config);
                 }
 
                 controller.Build()
                           .ApplyFilter(value)
                           .Out();
-
+               
                 GetNextAction();
 
             }
@@ -100,7 +91,7 @@ namespace SpatialFiltering
             }
 
 
-            // Get correct action for the given key
+            // Get correct value for a given key
             value = filter.GetValue(args[1]);
 
             if (value is null)
@@ -124,11 +115,14 @@ namespace SpatialFiltering
         }
 
 
-        private static void UseNewFile()
+        private static void LoadNewFile()
         {
             Console.Write("\n[Load file]\n> ");
 
             var input = Console.ReadLine() ?? string.Empty;
+
+            if (input is "exit")
+                Environment.Exit(0);
 
             var file = Path.GetFileName(input) ?? string.Empty;
             
@@ -151,11 +145,21 @@ namespace SpatialFiltering
         private static void GetNextAction()
         {
 
+            if (selectedFilter is "laplacian")
+                Environment.Exit(0);
+
             Console.Write("\n\n\n  Press any key if you wish to continue...Type 'exit' for exiting application.\n  > ");
             
+            var (Left, Top) = Console.GetCursorPosition();
+
+
             if (Console.ReadLine().ToLower() is "exit")
                 Environment.Exit(0);
+
             
+            Console.SetCursorPosition(Left, Top - 1);
+            Console.Write($"\r {new string(' ', Console.WindowWidth + 50)} \r");
+            Console.SetCursorPosition(Left, Top - 2);
 
             Console.Write("\n\n  Do you want to continue with the same file?\n  > ");
 
