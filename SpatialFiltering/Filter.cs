@@ -334,25 +334,6 @@ namespace SpatialFiltering
         public Task ApplyLaplacianFilter()
         {
 
-            /* Laplace Equation:  Δ^2(f) =  δ^2(f)       δ^2(f)    =  [f(x+1,y) + f(x-1,y) + f(x,y+1) + f(x,y-1) - 4f(x,y)] =
-                                           --------  +  --------  
-                                           δ^2(f(x))    δ^2(f(y))
-
-                = { 0   1   0
-                    1  -4   1
-                    0   1   0 }
-
-
-                 δ^2(f)/δ^2(f(x)) = f(x+1,y) + f(x-1,y) - 2f(x,y)
-                 δ^2(f)/δ^2(f(y)) = f(x,y+1) + f(x,y-1) - 2f(x,y)
-            */
-
-
-
-
-            // First apply a noise reduction filter like median to smooth the image (instead of Gaussian Blur),
-            // cause of the high sensitivity of laplacian, to make it more effective.
-
             bool q = false;
             bool w = false;
 
