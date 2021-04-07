@@ -46,7 +46,7 @@ namespace SpatialFiltering
             
             var result = _inputProvider();
             if (int.TryParse(result, out int value))
-                _yuv.YWidth = value;
+               _yuv.YWidth = value;
 
              _helpers.UserExit(result);
 
@@ -102,7 +102,7 @@ namespace SpatialFiltering
         }
 
 
-        private void FileProperties()
+        public void FileProperties()
         {
             _outputProvider("\n");
             _outputProvider("\n ┌──────────────────────┐ ");
@@ -209,6 +209,14 @@ namespace SpatialFiltering
             _outputProvider("\n └───────────────────────────────┘ ");
 
 
+            if (Program.selectedFilter.ToLower() is "laplacian")
+            {
+                _yuv.Dimensions = 2;
+                _yuv.Mask = 3;
+
+                return;
+            }
+
             string result = "";
 
             _outputProvider("\n\n  Select array implementation method between 1 and 2 dimensions\n  > ");
@@ -273,7 +281,7 @@ namespace SpatialFiltering
 
         public void WriteToFile()
         {
-           
+            
             try
             {
                 if (_yuv.Dimensions is 1)
