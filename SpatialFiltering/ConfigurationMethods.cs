@@ -118,7 +118,7 @@ namespace SpatialFiltering
             _outputProvider($"\n  Folder Path: {Path.GetDirectoryName(Program.filepath)}");
             _outputProvider($"\n  Date Created: {File.GetCreationTime(Program.filepath)}");
             _outputProvider($"\n  Date Modified: {File.GetLastAccessTime(Program.filepath)}");
-            _outputProvider($"\n  Size: {_yuv.YTotalBytes} KB");
+            _outputProvider($"\n  Size: {_yuv.YTotalBytes} Bytes");
             _outputProvider($"\n  Owner: {Environment.UserName}");
             _outputProvider($"\n  Computer: {Environment.MachineName}");
         }
@@ -128,7 +128,7 @@ namespace SpatialFiltering
         {
             try
             {
-
+                
                 using (FileStream fsSource = new(Program.filepath, FileMode.Open, FileAccess.Read))
                 {
 
@@ -281,7 +281,7 @@ namespace SpatialFiltering
 
         public void WriteToFile()
         {
-            
+
             try
             {
                 if (_yuv.Dimensions is 1)
