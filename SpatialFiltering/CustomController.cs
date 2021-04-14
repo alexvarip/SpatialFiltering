@@ -29,7 +29,7 @@ namespace SpatialFiltering
         /// </summary>
         public CustomController Build()
         {
-            
+
             if (Program.keepInstancesAlive is "yes")
             {
                 _config.FileProperties();
