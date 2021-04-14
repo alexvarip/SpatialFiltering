@@ -43,12 +43,19 @@ namespace SpatialFiltering
 
 
 
+        public string GetFilter(int index)
+        {
+            return _filters.ElementAtOrDefault(index).Key;
+        }
+
+
         public Action GetValue(string key)
         {
             key = char.ToUpper(key[0]) + key.Substring(1);
 
             if (!_filters.TryGetValue(key, out Action value)) { }
 
+            
             return value;
         }
 
