@@ -32,7 +32,7 @@ namespace SpatialFiltering
 
                 if (keepInstancesAlive is "no")
                 {
-                    LoadNewFile();
+                    LoadNewFile(filter);
 
                     GetAssemblyInfo();
                 }
@@ -115,9 +115,9 @@ namespace SpatialFiltering
         }
 
 
-        private static void LoadNewFile()
+        private static void LoadNewFile(Filter filter)
         {
-            Console.Write("\n[Load file]\n> ");
+            Console.Write("\nLoad file\n> ");
 
             var input = Console.ReadLine() ?? string.Empty;
 
@@ -138,15 +138,38 @@ namespace SpatialFiltering
                 Console.WriteLine($"'{file}' is not recognized as a known internal file type.\n");
                 Console.WriteLine("A file extension of type '.yuv' is expected.\n");
                 Environment.Exit(0);
-            }           
+            }
+
+            Console.Write($"\nFilter ({string.Join(", ", filter.GetAvailableFilters())})\n> ");
+            input = Console.ReadLine() ?? string.Empty;
+
+            if (input is "")
+            {
+                Console.WriteLine($"[SYSTEM] Filter was successfully restored using the default [{filter.GetFilter(0)}]\n");
+                value = filter.GetValue(filter.GetFilter(0));
+                selectedFilter = filter.GetFilter(0).ToLower();
+                Console.Write("\nPress any key to proceed...");
+                Console.ReadLine();
+                return;
+            }
+
+            value = null;
+            value = filter.GetValue(input);
+
+            if (value is null)
+            {
+                Console.WriteLine($"'{input}' is not recognized as a filter.\n");
+                Help(filter);
+
+                Environment.Exit(0);
+            }
+
+            selectedFilter = input.ToLower();
         } 
 
 
         private static void GetNextAction()
         {
-
-            if (selectedFilter is "laplacian")
-                Environment.Exit(0);
 
             Console.Write("\n\n\n  Press any key if you wish to continue...Type 'exit' for exiting application.\n  > ");
             
@@ -161,9 +184,16 @@ namespace SpatialFiltering
             Console.Write($"\r {new string(' ', Console.WindowWidth + 50)} \r");
             Console.SetCursorPosition(Left, Top - 2);
 
-            Console.Write("\n\n  Do you want to continue with the same file?\n  > ");
+            Console.Clear();
 
-            keepInstancesAlive = Console.ReadLine() is "no" ? "no" : "yes";
+            Console.Write("\nDo you want to continue with a new file? [Type 'exit' for exiting application.]\n> ");
+
+            string answer = Console.ReadLine();
+
+            if ((selectedFilter is "laplacian" && answer is "no") || answer is "exit")
+                Environment.Exit(0);
+
+            keepInstancesAlive = answer is "no" ? "yes" : "no";
 
         }
 
