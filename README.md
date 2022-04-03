@@ -7,8 +7,8 @@ A console application for filtering yuv image files with spatial filters. The im
 Usage: executable [options[-f]] [filter] [options[-i]] [path-to-file]
 ```
 `Options:`
-     `-h | --help  &emsp;&emsp;&emsp; Display help.`
-&emsp;-f&nbsp; | --filter  &emsp;&emsp;&emsp; Select a filter.<br>
+     `-h | --help        Display help.`
+     `-f | --filter      Select a filter.`<br>
 &emsp;-i&nbsp; | --import  &emsp;&emsp; Import a file.<br>
 filter: <br>
 &emsp;Median, Average, Laplacian <br>
