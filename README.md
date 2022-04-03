@@ -16,4 +16,4 @@ path-to-file: <br>
 &emsp;The path to a .yuv file to import.<br>
 
 
-<br>* Notice: The application specifically targets only .yuv image files.
+<br> * Notice: The application specifically targets only .yuv image files.
